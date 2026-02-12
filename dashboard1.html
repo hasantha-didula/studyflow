@@ -124,7 +124,7 @@
                         <div class="flex items-center justify-center gap-4">
                             <select id="focus-type" class="px-6 py-4 bg-white border border-slate-200 rounded-2xl font-bold outline-none">
                                 <option value="class">Class Session</option>
-                                <option value="homework">Homework Session</option>
+                                <option value="hw">Homework Session</option>
                                 <option value="exam">Exam Prep</option>
                             </select>
                             <button id="timer-btn" onclick="toggleTimer()" class="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-black shadow-xl">Start Session</button>
@@ -352,7 +352,7 @@
             updateTimerUI(); updateStats(); renderChart();
         }
 
-        // --- Session Handlers (FIXED: No Double Entry) ---
+        // --- Session Handlers ---
         const handleSessionSubmit = async (e, category) => {
             e.preventDefault();
             const formData = new FormData(e.target);
@@ -361,11 +361,9 @@
             session.user_id = user?.id || 'guest';
             session.id = crypto.randomUUID();
             
-            // Only push to localDb if we are NOT in live sync mode or if insertion is guaranteed
             if (supabaseClient && user) {
                 const { data, error } = await supabaseClient.from('sessions').insert([session]).select();
                 if (!error && data) {
-                    // Update local store with the actual returned data to prevent duplicates if real-time listener is also active
                     const existing = localDb.sessions.find(s => s.id === session.id);
                     if (!existing) localDb.sessions.push(data[0]);
                 }
@@ -483,7 +481,6 @@
             const pending = document.getElementById('quick-pending-list');
             if(pending) pending.innerHTML = localDb.subtasks.filter(s => !s.completed).slice(0, 5).map(s => `<div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3 font-bold text-xs"><div class="w-2 h-2 rounded-full bg-rose-500"></div>${s.title}</div>`).join('');
             
-            // Stats
             if(document.getElementById('dash-total-tasks')) document.getElementById('dash-total-tasks').innerText = localDb.sessions.length;
         }
 
@@ -517,7 +514,7 @@
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.getElementById(`tab-${id}`).classList.add('active');
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            const btn = Array.from(document.querySelectorAll('.nav-link')).find(b => b.innerText.toLowerCase().includes(id));
+            const btn = Array.from(document.querySelectorAll('.nav-link')).find(b => b.innerText.toLowerCase().includes(id) || b.innerText.toLowerCase().includes(id.replace('manager', 'task')));
             if (btn) btn.classList.add('active');
             document.getElementById('header-title').innerText = id.replace(/-/g, ' ');
             if (id === 'dashboard') setTimeout(renderChart, 100);

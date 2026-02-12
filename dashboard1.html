@@ -1,630 +1,528 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>StudyFlow · MyStudy Life style</title>
-  <!-- Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-  <!-- Chart.js for graphs -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-  <!-- Supabase client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', sans-serif;
-      background: #f6f9fc;
-      color: #1a2634;
-      line-height: 1.5;
-      padding: 24px 32px;
-    }
-
-    .app {
-      max-width: 1440px;
-      margin: 0 auto;
-    }
-
-    /* header & cards */
-    .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 28px;
-    }
-
-    .logo h1 {
-      font-size: 28px;
-      font-weight: 700;
-      background: linear-gradient(145deg, #0b3954, #0a4c6e);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      letter-spacing: -0.5px;
-    }
-
-    .logo span {
-      background: #0a4c6e;
-      color: white;
-      padding: 4px 12px;
-      border-radius: 30px;
-      font-size: 14px;
-      font-weight: 600;
-      -webkit-text-fill-color: white;
-      margin-left: 8px;
-    }
-
-    .supa-badge {
-      background: #3ecf8e;
-      color: #0c1f2c;
-      padding: 8px 18px;
-      border-radius: 40px;
-      font-weight: 600;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .dashboard-grid {
-      display: grid;
-      grid-template-columns: 1.2fr 2fr 1.2fr;
-      gap: 24px;
-      margin-bottom: 24px;
-    }
-
-    .stat-card {
-      background: white;
-      border-radius: 24px;
-      padding: 20px;
-      box-shadow: 0 8px 20px rgba(0,20,30,0.04);
-      border: 1px solid rgba(255,255,255,0.5);
-      backdrop-filter: blur(2px);
-    }
-
-    .stat-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: #5b6f7c;
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .canvas-container {
-      position: relative;
-      height: 160px;
-      width: 100%;
-    }
-
-    .modules-section {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
-      gap: 24px;
-      margin-top: 24px;
-    }
-
-    .module-card {
-      background: white;
-      border-radius: 24px;
-      padding: 20px;
-      box-shadow: 0 6px 14px rgba(0,0,0,0.02);
-      border: 1px solid #e5ecf0;
-    }
-
-    .module-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 18px;
-    }
-
-    .module-header h3 {
-      font-weight: 600;
-      font-size: 18px;
-      color: #0f3b4c;
-    }
-
-    .btn-sm {
-      background: #eef3f7;
-      border: none;
-      padding: 8px 14px;
-      border-radius: 30px;
-      font-weight: 500;
-      font-size: 13px;
-      color: #0a4c6e;
-      cursor: pointer;
-      transition: all 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .btn-sm:hover {
-      background: #dde7ed;
-    }
-
-    .item-list {
-      list-style: none;
-      margin-top: 6px;
-    }
-
-    .item-list li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 12px 0;
-      border-bottom: 1px solid #edf2f5;
-    }
-
-    .item-tag {
-      background: #e3f0f5;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 500;
-    }
-
-    .duration-badge {
-      background: #ffe7c7;
-      color: #9e5e1a;
-      font-size: 12px;
-      padding: 4px 10px;
-      border-radius: 16px;
-    }
-
-    .recur-badge {
-      background: #ddebf0;
-      color: #226277;
-      font-size: 11px;
-      margin-left: 6px;
-      padding: 2px 8px;
-      border-radius: 12px;
-    }
-
-    .footer-note {
-      margin-top: 40px;
-      font-size: 13px;
-      color: #7a8f99;
-      text-align: center;
-      border-top: 1px solid #d4e0e6;
-      padding-top: 24px;
-    }
-
-    .chart-row {
-      display: flex;
-      gap: 20px;
-      flex-wrap: wrap;
-    }
-
-    .small-chart-box {
-      background: white;
-      border-radius: 20px;
-      padding: 16px;
-      flex: 1 1 200px;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyFlow Pro - Academic Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .nav-link.active { background: #4f46e5; color: white; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .timer-ring { transition: stroke-dashoffset 0.3s linear; transform: rotate(-90deg); transform-origin: 50% 50%; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    </style>
 </head>
-<body>
-<div class="app">
+<body class="bg-slate-50 text-slate-900 overflow-hidden">
 
-  <!-- Header + Supabase integration status -->
-  <div class="header">
-    <div class="logo">
-      <h1><i class="fas fa-brain" style="margin-right: 12px; color: #0a6e7a;"></i>StudyFlow<span>MyStudy Life</span></h1>
+    <div class="h-screen flex">
+        <!-- Sidebar -->
+        <aside class="w-72 bg-white border-right border-slate-200 flex flex-col z-50">
+            <div class="p-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-indigo-200 shadow-xl">
+                        <i data-lucide="zap" class="text-white w-6 h-6"></i>
+                    </div>
+                    <span class="font-extrabold text-xl tracking-tight italic">StudyFlow<span class="text-indigo-600">.</span></span>
+                </div>
+            </div>
+
+            <nav class="flex-1 px-4 space-y-1">
+                <button onclick="switchTab('dashboard')" class="nav-link active w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
+                    <i data-lucide="layout-grid" class="w-5 h-5"></i> Overview
+                </button>
+                <button onclick="switchTab('focus')" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
+                    <i data-lucide="timer" class="w-5 h-5"></i> Focus Mode
+                </button>
+                <button onclick="switchTab('manager')" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
+                    <i data-lucide="list-checks" class="w-5 h-5"></i> Task Manager
+                </button>
+                <button onclick="switchTab('academic')" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
+                    <i data-lucide="book-open" class="w-5 h-5"></i> Academic Hub
+                </button>
+                <button onclick="switchTab('analytics')" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Analytics
+                </button>
+            </nav>
+
+            <div class="p-6 border-t border-slate-100">
+                <div class="bg-indigo-50 rounded-2xl p-4">
+                    <p class="text-[10px] font-black text-indigo-400 uppercase">Cloud Sync</p>
+                    <p id="sync-status" class="text-xs font-bold text-indigo-600">Initializing...</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 flex flex-col h-screen overflow-hidden">
+            <header class="h-20 flex items-center justify-between px-10 border-b border-slate-200 bg-white shrink-0">
+                <h2 id="header-title" class="text-xl font-extrabold capitalize">Dashboard Overview</h2>
+                <div id="current-time-container" class="text-right">
+                    <p id="current-date" class="text-[10px] font-black text-slate-400 uppercase"></p>
+                    <p id="current-time" class="text-lg font-bold text-slate-700">00:00:00</p>
+                </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto p-10 custom-scrollbar space-y-10">
+                
+                <!-- DASHBOARD TAB -->
+                <div id="tab-dashboard" class="tab-content active space-y-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-indigo-600 p-8 rounded-[2rem] text-white shadow-xl">
+                            <p class="text-[10px] font-black uppercase opacity-60">Focus Today</p>
+                            <h4 class="text-4xl font-black mt-2" id="dash-day-time">0h 00m</h4>
+                        </div>
+                        <div class="bg-white p-8 rounded-[2rem] border border-slate-200">
+                            <p class="text-[10px] font-black uppercase text-slate-400">Week Target</p>
+                            <h4 class="text-4xl font-black mt-2 text-slate-800" id="dash-week-time">0h 00m</h4>
+                        </div>
+                        <div class="bg-white p-8 rounded-[2rem] border border-slate-200">
+                            <p class="text-[10px] font-black uppercase text-slate-400">Total Month</p>
+                            <h4 class="text-4xl font-black mt-2 text-slate-800" id="dash-month-time">0h 00m</h4>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="lg:col-span-2 space-y-6">
+                            <h3 class="text-lg font-black flex items-center gap-2">Weekly Focus Trend</h3>
+                            <div class="bg-white p-6 rounded-[2rem] border border-slate-200 h-64">
+                                <canvas id="focusChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="space-y-6">
+                            <h3 class="text-lg font-black text-rose-600">Pending Sub-tasks</h3>
+                            <div id="quick-pending-list" class="space-y-3"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FOCUS MODE TAB -->
+                <div id="tab-focus" class="tab-content">
+                    <div class="max-w-2xl mx-auto text-center space-y-12 py-10">
+                        <div class="relative w-80 h-80 mx-auto flex items-center justify-center">
+                            <svg class="absolute inset-0 w-full h-full">
+                                <circle cx="160" cy="160" r="150" stroke="#f1f5f9" stroke-width="8" fill="transparent" />
+                                <circle id="timer-progress" cx="160" cy="160" r="150" stroke="#4f46e5" stroke-width="8" fill="transparent" stroke-dasharray="942.48" stroke-dashoffset="0" class="timer-ring" />
+                            </svg>
+                            <div class="text-center">
+                                <div id="timer-display" class="text-7xl font-black text-slate-800">25:00</div>
+                                <div id="timer-status" class="text-[10px] font-black uppercase text-indigo-500 mt-2">Ready</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-center gap-4">
+                            <select id="focus-type" class="px-6 py-4 bg-white border border-slate-200 rounded-2xl font-bold outline-none">
+                                <option value="class">Class Review</option>
+                                <option value="homework">Homework Session</option>
+                                <option value="exam">Exam Prep</option>
+                                <option value="other">General Study</option>
+                            </select>
+                            <button id="timer-btn" onclick="toggleTimer()" class="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-black shadow-xl">Start Session</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TASK MANAGER TAB -->
+                <div id="tab-manager" class="tab-content space-y-8">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-3xl font-black">Active Sessions</h3>
+                        <div class="flex gap-3">
+                            <button onclick="openModal('modal-main-hw')" class="bg-amber-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-amber-100">New HW Session</button>
+                            <button onclick="openModal('modal-main-exam')" class="bg-rose-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-rose-100">New Exam Session</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-4">
+                            <h4 class="text-sm font-black text-slate-400 uppercase">Homework Sessions</h4>
+                            <div id="main-hw-list" class="space-y-4"></div>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-sm font-black text-slate-400 uppercase">Exam Sessions</h4>
+                            <div id="main-exam-list" class="space-y-4"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ACADEMIC HUB TAB -->
+                <div id="tab-academic" class="tab-content space-y-8">
+                    <h3 class="text-3xl font-black">Academic Hub</h3>
+                    <div class="bg-white p-8 rounded-[2rem] border border-slate-200">
+                        <p class="text-slate-500 font-medium italic">Course materials and resources will appear here.</p>
+                    </div>
+                </div>
+
+                <!-- ANALYTICS TAB -->
+                <div id="tab-analytics" class="tab-content space-y-10">
+                    <h3 class="text-3xl font-black">Performance Analytics</h3>
+                    <div id="analytics-grid" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                        <div class="bg-white p-8 rounded-[2rem] border border-slate-200">
+                             <p class="text-[10px] font-black uppercase text-slate-400">Total Study Time</p>
+                             <h4 class="text-3xl font-black mt-2 text-slate-800" id="total-study-time">0h</h4>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
     </div>
-    <div class="supa-badge" id="supabaseStatus">
-      <i class="fas fa-plug"></i> Connecting to Supabase...
-    </div>
-  </div>
 
-  <!-- GRAPHS & STATS - worked time, exam marks, completed sessions etc -->
-  <div class="dashboard-grid">
-    <div class="stat-card">
-      <div class="stat-title"><i class="fas fa-clock" style="color:#2b7a62;"></i> Worked time (hours)</div>
-      <div class="canvas-container">
-        <canvas id="workedTimeChart"></canvas>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-title"><i class="fas fa-star" style="color:#db7a2b;"></i> Exam marks / subjects</div>
-      <div class="canvas-container">
-        <canvas id="examMarksChart"></canvas>
-      </div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-title"><i class="fas fa-check-circle" style="color:#2b7a62;"></i> Completed sessions</div>
-      <div class="canvas-container">
-        <canvas id="completionChart"></canvas>
-      </div>
-    </div>
-  </div>
+    <!-- Modals -->
+    <div id="modal-overlay" class="hidden fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
+        
+        <!-- Main HW Session Modal -->
+        <div id="modal-main-hw" class="modal-window hidden bg-white rounded-3xl w-full max-w-lg p-8 relative">
+            <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <h3 class="text-2xl font-black mb-6">Create HW Session</h3>
+            <form id="hw-form" class="space-y-4">
+                <input name="title" required placeholder="Session Title (e.g., Week 4 Problem Set)" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
+                <div class="grid grid-cols-2 gap-4">
+                    <select name="subjectId" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
+                    <input name="deadline" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                </div>
+                <button type="submit" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Initialize Session</button>
+            </form>
+        </div>
 
-  <!-- 5 CORE MANAGEMENT BLOCKS: Class, Subjects, Exams, Homework, Assignments (with durations & repeating) -->
-  <div class="modules-section">
-    
-    <!-- CLASS MANAGEMENT -->
-    <div class="module-card">
-      <div class="module-header">
-        <h3><i class="fas fa-chalkboard" style="margin-right: 8px; color: #1a7a8c;"></i> Classes</h3>
-        <button class="btn-sm" id="addClassBtn"><i class="fas fa-plus"></i> Class</button>
-      </div>
-      <ul class="item-list" id="classList">
-        <!-- dynamic from supabase -->
-      </ul>
-    </div>
-
-    <!-- SUBJECTS MANAGEMENT -->
-    <div class="module-card">
-      <div class="module-header">
-        <h3><i class="fas fa-book-open" style="margin-right: 8px; color: #4682b4;"></i> Subjects</h3>
-        <button class="btn-sm" id="addSubjectBtn"><i class="fas fa-plus"></i> Subject</button>
-      </div>
-      <ul class="item-list" id="subjectList"></ul>
-    </div>
-
-    <!-- EXAMS (with marks per subject) -->
-    <div class="module-card">
-      <div class="module-header">
-        <h3><i class="fas fa-pencil-alt" style="margin-right: 8px; color: #b45f2e;"></i> Exams</h3>
-        <button class="btn-sm" id="addExamBtn"><i class="fas fa-plus"></i> Exam</button>
-      </div>
-      <ul class="item-list" id="examList"></ul>
+        <!-- Sub Task Modal -->
+        <div id="modal-subtask" class="modal-window hidden bg-white rounded-3xl w-full max-w-sm p-8 relative">
+             <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <h3 class="text-xl font-black mb-4">Add Sub-task</h3>
+            <input id="subtask-input" placeholder="Subtask name..." class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none mb-4">
+            <button onclick="saveSubtask()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold">Add to Session</button>
+        </div>
+        
+        <!-- Main Exam Session Modal -->
+        <div id="modal-main-exam" class="modal-window hidden bg-white rounded-3xl w-full max-w-lg p-8 relative">
+            <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <h3 class="text-2xl font-black mb-6">Create Exam Session</h3>
+            <form id="exam-form" class="space-y-4">
+                <input name="title" required placeholder="Exam Name (e.g., Mid-term Prep)" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
+                <div class="grid grid-cols-2 gap-4">
+                    <select name="subjectId" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
+                    <input name="date" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl">
+                    <label class="text-[10px] font-black text-slate-400 uppercase">Repeat Frequency</label>
+                    <select name="repeat" class="w-full bg-transparent outline-none font-bold">
+                        <option value="none">Once</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="biweekly">Bi-weekly</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-rose-600 text-white py-4 rounded-2xl font-black">Initialize Session</button>
+            </form>
+        </div>
     </div>
 
-    <!-- HOMEWORK MANAGEMENT (duration & repeating) -->
-    <div class="module-card">
-      <div class="module-header">
-        <h3><i class="fas fa-home" style="margin-right: 8px; color: #5f7d3b;"></i> Homework</h3>
-        <button class="btn-sm" id="addHomeworkBtn"><i class="fas fa-plus"></i> Homework</button>
-      </div>
-      <ul class="item-list" id="homeworkList"></ul>
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, doc, onSnapshot, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-    <!-- ASSIGNMENT MANAGEMENT (duration & repeat) -->
-    <div class="module-card">
-      <div class="module-header">
-        <h3><i class="fas fa-tasks" style="margin-right: 8px; color: #a34c6e;"></i> Assignments</h3>
-        <button class="btn-sm" id="addAssignmentBtn"><i class="fas fa-plus"></i> Assignment</button>
-      </div>
-      <ul class="item-list" id="assignmentList"></ul>
-    </div>
-  </div>
+        // Firebase Setup
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'studyflow-pro';
 
-  <!-- Extra small row for REPEATING info summary (optional) -->
-  <div style="margin-top: 16px; display: flex; gap: 12px; flex-wrap: wrap; color: #386a7a;">
-    <span><i class="fas fa-redo-alt"></i> Repeating: <span id="repeatSummary">weekly, biweekly, monthly</span></span>
-  </div>
+        let user = null;
+        let localDb = {
+            subjects: [{id: 's1', name: 'Combined Maths', color: 'indigo'}, {id: 's2', name: 'Chemistry', color: 'rose'}, {id: 's3', name: 'Physics', color: 'emerald'}],
+            sessions: [], 
+            subtasks: [], 
+            focusLogs: []  
+        };
 
-  <div class="footer-note">
-    ⚡ Integrated with Supabase (hosted on Vercel) · All data persists · Full Study Management
-  </div>
-</div>
+        let focusChart = null;
 
-<script>
-  // ----------------------------------------------------------------
-  //  SUPABASE INIT (Hosted on Vercel – use demo keys / public anon)
-  // ----------------------------------------------------------------
-  const SUPABASE_URL = 'https://zcwxnlglppbqquylpdgz.supabase.co';  // demo project (replace with your own if needed)
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpjd3hubGdscHBicXF1eWxwZGd6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTI4OTM4MTAsImV4cCI6MjAyODQ2OTgxMH0.oJ7MHgQpkA32K1cc3kqOP7X0bQu1_9tS5bWWPZ56pFw'; // anon key (public)
-  
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        // Auth & Sync
+        onAuthStateChanged(auth, (u) => {
+            if (u) {
+                user = u;
+                document.getElementById('sync-status').innerText = 'Connected & Synced';
+                startSync();
+            } else {
+                signInAnonymously(auth);
+            }
+        });
 
-  // ----- Global state -----
-  let classes = [];
-  let subjects = [];
-  let exams = [];
-  let homeworks = [];
-  let assignments = [];
+        function startSync() {
+            if (!user) return;
+            const sessionsPath = collection(db, 'artifacts', appId, 'users', user.uid, 'sessions');
+            onSnapshot(sessionsPath, (snap) => {
+                localDb.sessions = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                renderAll();
+            }, (err) => console.error("Session sync error:", err));
 
-  // ----- Charts instances -----
-  let workedChart, marksChart, completionChart;
+            const subtasksPath = collection(db, 'artifacts', appId, 'users', user.uid, 'subtasks');
+            onSnapshot(subtasksPath, (snap) => {
+                localDb.subtasks = snap.docs.map(d => ({id: d.id, ...d.data()}));
+                renderAll();
+            }, (err) => console.error("Subtask sync error:", err));
 
-  // ----- DOM elements -----
-  const statusEl = document.getElementById('supabaseStatus');
+            const logsPath = collection(db, 'artifacts', appId, 'users', user.uid, 'focusLogs');
+            onSnapshot(logsPath, (snap) => {
+                localDb.focusLogs = snap.docs.map(d => d.data());
+                updateStats();
+                renderChart();
+            }, (err) => console.error("Logs sync error:", err));
+        }
 
-  // ----------------------------------------------------------------
-  //  INIT: fetch all data, render UI, update charts
-  // ----------------------------------------------------------------
-  async function initApp() {
-    try {
-      statusEl.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Syncing with Supabase...`;
-      
-      await Promise.all([
-        fetchClasses(),
-        fetchSubjects(),
-        fetchExams(),
-        fetchHomeworks(),
-        fetchAssignments()
-      ]);
+        // Timer Logic
+        let timeLeft = 1500;
+        let timerRunning = false;
+        let timerInterval;
 
-      renderAllLists();
-      updateAllGraphs();
-      updateRepeatSummary();
-      
-      statusEl.innerHTML = `<i class="fas fa-link"></i> Live · Supabase (Vercel) · ${new Date().toLocaleTimeString()}`;
-      statusEl.style.background = '#dff0e2';
-    } catch (err) {
-      console.error('Supabase error', err);
-      statusEl.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Connection issue – using demo mode (data in memory)`;
-      // fallback: use local demo data if supabase fails (for smooth preview)
-      injectDemoData();
-      renderAllLists();
-      updateAllGraphs();
-      updateRepeatSummary();
-    }
-  }
+        window.toggleTimer = () => {
+            if (timerRunning) {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                document.getElementById('timer-btn').innerText = 'Resume Session';
+            } else {
+                timerRunning = true;
+                document.getElementById('timer-btn').innerText = 'Pause Session';
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerUI();
+                    if (timeLeft <= 0) completeSession();
+                }, 1000);
+            }
+        };
 
-  // ----- supabase fetch functions (with error fallback) -----
-  async function fetchClasses() {
-    const { data, error } = await supabase.from('classes').select('*');
-    if (error) throw error;
-    classes = data || [];
-  }
-  async function fetchSubjects() {
-    const { data, error } = await supabase.from('subjects').select('*');
-    if (error) throw error;
-    subjects = data || [];
-  }
-  async function fetchExams() {
-    const { data, error } = await supabase.from('exams').select('*');
-    if (error) throw error;
-    exams = data || [];
-  }
-  async function fetchHomeworks() {
-    const { data, error } = await supabase.from('homeworks').select('*');
-    if (error) throw error;
-    homeworks = data || [];
-  }
-  async function fetchAssignments() {
-    const { data, error } = await supabase.from('assignments').select('*');
-    if (error) throw error;
-    assignments = data || [];
-  }
+        function updateTimerUI() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            document.getElementById('timer-display').innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+            const offset = 942.48 - (timeLeft / 1500) * 942.48;
+            document.getElementById('timer-progress').style.strokeDashoffset = offset;
+        }
 
-  // ----- inject demo data if supabase fails (for demonstration) -----
-  function injectDemoData() {
-    if (classes.length === 0) classes = [{ id: 1, name: 'Mathematics 101', completed_sessions: 12 }, { id: 2, name: 'Physics Lab', completed_sessions: 8 }];
-    if (subjects.length === 0) subjects = [{ id: 1, name: 'Calculus' }, { id: 2, name: 'Mechanics' }, {id:3, name:'Literature'}];
-    if (exams.length === 0) exams = [{ id: 1, subject_id: 1, mark: 88, name: 'Midterm Calc' }, { id: 2, subject_id: 2, mark: 74, name: 'Physics final' }];
-    if (homeworks.length === 0) homeworks = [{ id: 1, name: 'Derivatives worksheet', duration: 90, repeat: 'weekly', completed: true }, { id: 2, name: 'Newton laws', duration: 45, repeat: 'none', completed: false }];
-    if (assignments.length === 0) assignments = [{ id: 1, name: 'Essay on modernism', duration: 120, repeat: 'biweekly', completed: true }, { id: 2, name: 'Group presentation', duration: 60, repeat: 'monthly', completed: false }];
-  }
+        async function completeSession() {
+            if (!user) return;
+            clearInterval(timerInterval);
+            const type = document.getElementById('focus-type').value;
+            const log = { type, duration: 1500, date: new Date().toISOString().split('T')[0] };
+            await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'focusLogs'), log);
+            timeLeft = 1500;
+            timerRunning = false;
+            updateTimerUI();
+            alert('Session Complete! Focus logged.');
+        }
 
-  // ----------------------------------------------------------------
-  //  RENDER all lists (Class, Subjects, Exams, Homework, Assignment)
-  // ----------------------------------------------------------------
-  function renderAllLists() {
-    renderClasses();
-    renderSubjects();
-    renderExams();
-    renderHomeworks();
-    renderAssignments();
-  }
+        // Manager Logic
+        const handleMainSession = async (e, category) => {
+            e.preventDefault();
+            if (!user) return;
+            const formData = new FormData(e.target);
+            const session = Object.fromEntries(formData.entries());
+            session.category = category;
+            session.createdAt = new Date().toISOString();
+            
+            await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'sessions'), session);
+            closeModal();
+            e.target.reset();
+        };
 
-  function renderClasses() {
-    const container = document.getElementById('classList');
-    container.innerHTML = '';
-    classes.forEach(c => {
-      const li = document.createElement('li');
-      li.innerHTML = `<span><i class="fas fa-users-class" style="margin-right:8px;color:#2f86a6;"></i>${c.name || 'Class'} <span class="recur-badge"><i class="far fa-calendar-check"></i> ${c.completed_sessions || 0} sess</span></span>
-                      <span class="duration-badge">${c.completed_sessions || 0} completed</span>`;
-      container.appendChild(li);
-    });
-  }
+        document.getElementById('hw-form').addEventListener('submit', (e) => handleMainSession(e, 'hw'));
+        document.getElementById('exam-form').addEventListener('submit', (e) => handleMainSession(e, 'exam'));
 
-  function renderSubjects() {
-    const container = document.getElementById('subjectList');
-    container.innerHTML = '';
-    subjects.forEach(s => {
-      const li = document.createElement('li');
-      li.innerHTML = `<span><i class="fas fa-atom" style="margin-right:8px;color:#388e9e;"></i>${s.name || 'Subject'}</span>
-                      <span class="item-tag">ID: ${s.id}</span>`;
-      container.appendChild(li);
-    });
-  }
+        let activeSessionId = null;
+        window.openSubtaskModal = (id) => {
+            activeSessionId = id;
+            openModal('modal-subtask');
+        };
 
-  function renderExams() {
-    const container = document.getElementById('examList');
-    container.innerHTML = '';
-    exams.forEach(e => {
-      const sub = subjects.find(s => s.id === e.subject_id) || { name: 'Subject' };
-      const mark = e.mark ?? '—';
-      li = document.createElement('li');
-      li.innerHTML = `<span><i class="fas fa-file-alt"></i> ${e.name || 'Exam'} (${sub.name})</span>
-                      <span style="background:#bcd9df; padding:4px 12px; border-radius:20px;">⭐ ${mark}</span>`;
-      container.appendChild(li);
-    });
-  }
+        window.saveSubtask = async () => {
+            if (!user) return;
+            const title = document.getElementById('subtask-input').value;
+            if (!title) return;
+            await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'subtasks'), {
+                sessionId: activeSessionId,
+                title,
+                completed: false
+            });
+            document.getElementById('subtask-input').value = '';
+            closeModal();
+        };
 
-  function renderHomeworks() {
-    const container = document.getElementById('homeworkList');
-    container.innerHTML = '';
-    homeworks.forEach(h => {
-      const li = document.createElement('li');
-      let repeatIcon = h.repeat && h.repeat !== 'none' ? `<span class="recur-badge"><i class="fas fa-redo"></i> ${h.repeat}</span>` : '';
-      li.innerHTML = `<span style="display:flex; align-items:center; gap:6px;"><i class="fas fa-pen"></i> ${h.name || 'HW'} ${repeatIcon}</span>
-                      <span><span class="duration-badge"><i class="far fa-hourglass"></i> ${h.duration || 0} min</span> ${h.completed ? '<i class="fas fa-check-circle" style="color:#2e8b57;"></i>' : ''}</span>`;
-      container.appendChild(li);
-    });
-  }
+        window.toggleSubtask = async (id, status) => {
+            if (!user) return;
+            const ref = doc(db, 'artifacts', appId, 'users', user.uid, 'subtasks', id);
+            await updateDoc(ref, { completed: !status });
+        };
 
-  function renderAssignments() {
-    const container = document.getElementById('assignmentList');
-    container.innerHTML = '';
-    assignments.forEach(a => {
-      const li = document.createElement('li');
-      let repeatIcon = a.repeat && a.repeat !== 'none' ? `<span class="recur-badge"><i class="fas fa-sync-alt"></i> ${a.repeat}</span>` : '';
-      li.innerHTML = `<span><i class="fas fa-scroll"></i> ${a.name || 'Assignment'} ${repeatIcon}</span>
-                      <span><span class="duration-badge">${a.duration || 0} min</span> ${a.completed ? '<i class="fas fa-check-circle" style="color:#2e8b57;"></i>' : ''}</span>`;
-      container.appendChild(li);
-    });
-  }
+        // Render Functions
+        function renderAll() {
+            renderManager();
+            renderSubjects();
+            lucide.createIcons();
+        }
 
-  // --- update repeat summary line ---
-  function updateRepeatSummary() {
-    const allRepeats = [...homeworks, ...assignments].filter(i => i.repeat && i.repeat !== 'none').map(i => i.repeat);
-    const unique = [...new Set(allRepeats)];
-    document.getElementById('repeatSummary').innerText = unique.join(', ') || 'none';
-  }
+        function renderManager() {
+            const hwList = document.getElementById('main-hw-list');
+            const examList = document.getElementById('main-exam-list');
+            const pendingList = document.getElementById('quick-pending-list');
 
-  // ----------------------------------------------------------------
-  //  GRAPHS : Worked time (Homework durations + assignment durations)
-  //  Exam marks, Completed sessions (classes, homeworks, assignments)
-  // ----------------------------------------------------------------
-  function updateAllGraphs() {
-    // 1. WORKED TIME (from homeworks + assignments durations, in hours)
-    const totalWorkedMins = [...homeworks, ...assignments].reduce((acc, i) => acc + (i.duration || 0), 0);
-    const workedHours = (totalWorkedMins / 60).toFixed(1);
-    
-    const ctx1 = document.getElementById('workedTimeChart').getContext('2d');
-    if (workedChart) workedChart.destroy();
-    workedChart = new Chart(ctx1, {
-      type: 'bar',
-      data: {
-        labels: ['Homework', 'Assignments', 'Total'],
-        datasets: [{
-          label: 'Hours',
-          data: [
-            (homeworks.reduce((a,b)=>a+(b.duration||0),0)/60).toFixed(1),
-            (assignments.reduce((a,b)=>a+(b.duration||0),0)/60).toFixed(1),
-            workedHours
-          ],
-          backgroundColor: ['#52b9a1', '#f0b27a', '#6082b6']
-        }]
-      }
-    });
+            if (!hwList || !examList || !pendingList) return;
 
-    // 2. EXAM MARKS per subject (group)
-    const subjectMap = new Map();
-    subjects.forEach(s => subjectMap.set(s.id, { name: s.name, totalMark: 0, count: 0 }));
-    exams.forEach(e => {
-      if (subjectMap.has(e.subject_id)) {
-        subjectMap.get(e.subject_id).totalMark += e.mark || 0;
-        subjectMap.get(e.subject_id).count += 1;
-      }
-    });
-    const subNames = [], avgMarks = [];
-    subjectMap.forEach((val, key) => {
-      if (val.count > 0) {
-        subNames.push(val.name);
-        avgMarks.push((val.totalMark / val.count).toFixed(1));
-      }
-    });
-    if (subNames.length === 0) { subNames.push('No exams'); avgMarks.push(0); }
-    const ctx2 = document.getElementById('examMarksChart').getContext('2d');
-    if (marksChart) marksChart.destroy();
-    marksChart = new Chart(ctx2, {
-      type: 'doughnut',
-      data: {
-        labels: subNames,
-        datasets: [{
-          data: avgMarks,
-          backgroundColor: ['#56ab91', '#c49a6c', '#6f9cbd', '#b47aa2']
-        }]
-      }
-    });
+            const sessions = localDb.sessions;
+            const subs = localDb.subtasks;
 
-    // 3. COMPLETED SESSIONS (classes completed_sessions + completed homeworks + completed assignments)
-    const classCompleted = classes.reduce((acc, c) => acc + (c.completed_sessions || 0), 0);
-    const hwCompleted = homeworks.filter(h => h.completed).length;
-    const assignCompleted = assignments.filter(a => a.completed).length;
-    const ctx3 = document.getElementById('completionChart').getContext('2d');
-    if (completionChart) completionChart.destroy();
-    completionChart = new Chart(ctx3, {
-      type: 'line',
-      data: {
-        labels: ['Classes', 'Homework', 'Assignments', 'Exams'],
-        datasets: [{
-          label: 'Completed',
-          data: [classCompleted, hwCompleted, assignCompleted, exams.length],
-          backgroundColor: 'rgba(72, 149, 144, 0.2)',
-          borderColor: '#2c7a78',
-          tension: 0.2,
-          fill: true
-        }]
-      }
-    });
-  }
+            const renderCard = (s) => {
+                const sessionSubs = subs.filter(sub => sub.sessionId === s.id);
+                const done = sessionSubs.filter(sub => sub.completed).length;
+                const total = sessionSubs.length;
+                const progress = total === 0 ? 0 : (done / total) * 100;
+                const subColor = localDb.subjects.find(sub => sub.id === s.subjectId)?.color || 'slate';
 
-  // ----------------------------------------------------------------
-  //  BUTTON HANDLERS (Add modals – simplified prompt, push to Supabase)
-  // ----------------------------------------------------------------
-  document.getElementById('addClassBtn').addEventListener('click', async () => {
-    const name = prompt('Enter class name', 'Biology');
-    if (!name) return;
-    const sessions = parseInt(prompt('Completed sessions?', '5'), 10) || 0;
-    const { data, error } = await supabase.from('classes').insert({ name, completed_sessions: sessions }).select();
-    if (!error && data) { classes.push(data[0]); }
-    else { // demo fallback
-      classes.push({ id: Date.now(), name, completed_sessions: sessions });
-    }
-    renderClasses(); updateAllGraphs();
-  });
+                return `
+                    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h5 class="font-black text-slate-800">${s.title}</h5>
+                                <p class="text-[10px] font-bold text-${subColor}-500 uppercase">${s.deadline || s.date}</p>
+                            </div>
+                            <button onclick="openSubtaskModal('${s.id}')" class="p-2 bg-slate-50 rounded-xl hover:bg-indigo-600 hover:text-white transition-all">
+                                <i data-lucide="plus" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                            <div class="bg-indigo-600 h-full transition-all" style="width: ${progress}%"></div>
+                        </div>
+                        <div class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
+                            ${sessionSubs.map(sub => `
+                                <div onclick="toggleSubtask('${sub.id}', ${sub.completed})" class="flex items-center gap-3 cursor-pointer group">
+                                    <div class="w-4 h-4 rounded border-2 ${sub.completed ? 'bg-indigo-600 border-indigo-600' : 'border-slate-200'} flex items-center justify-center">
+                                        ${sub.completed ? '<i data-lucide="check" class="text-white w-3 h-3"></i>' : ''}
+                                    </div>
+                                    <span class="text-xs font-medium ${sub.completed ? 'text-slate-300 line-through' : 'text-slate-600'}">${sub.title}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            };
 
-  document.getElementById('addSubjectBtn').addEventListener('click', async () => {
-    const name = prompt('Subject name', 'Organic Chemistry');
-    if (!name) return;
-    const { data, error } = await supabase.from('subjects').insert({ name }).select();
-    if (!error && data) subjects.push(data[0]); else subjects.push({ id: Date.now(), name });
-    renderSubjects();
-  });
+            hwList.innerHTML = sessions.filter(s => s.category === 'hw').map(renderCard).join('');
+            examList.innerHTML = sessions.filter(s => s.category === 'exam').map(renderCard).join('');
+            
+            pendingList.innerHTML = subs.filter(sub => !sub.completed).slice(0, 5).map(sub => `
+                <div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
+                    <div class="w-2 h-2 rounded-full bg-rose-500"></div>
+                    <span class="text-xs font-bold text-slate-700">${sub.title}</span>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
 
-  document.getElementById('addExamBtn').addEventListener('click', async () => {
-    const name = prompt('Exam name', 'Final exam');
-    if (!name) return;
-    let subjPrompt = 'Subject IDs: ' + subjects.map(s=>`${s.id}:${s.name}`).join(', ');
-    const subId = parseInt(prompt(`${subjPrompt}\nEnter subject ID:`), 10);
-    const mark = parseInt(prompt('Mark (0-100)', '85'), 10);
-    const { data, error } = await supabase.from('exams').insert({ name, subject_id: subId, mark }).select();
-    if (!error && data) exams.push(data[0]); else exams.push({ id: Date.now(), name, subject_id: subId, mark });
-    renderExams(); updateAllGraphs();
-  });
+        function renderChart() {
+            const canvasEl = document.getElementById('focusChart');
+            if (!canvasEl) return;
+            const ctx = canvasEl.getContext('2d');
+            const last7Days = [...Array(7)].map((_, i) => {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                return d.toISOString().split('T')[0];
+            }).reverse();
 
-  document.getElementById('addHomeworkBtn').addEventListener('click', async () => {
-    const name = prompt('Homework name', 'Chapter 5 problems');
-    if (!name) return;
-    const duration = parseInt(prompt('Duration (minutes)', '60'), 10);
-    const repeat = prompt('Repeat (none, weekly, biweekly, monthly)', 'weekly');
-    const completed = confirm('Mark as completed? OK=yes / Cancel=no');
-    const { data, error } = await supabase.from('homeworks').insert({ name, duration, repeat, completed }).select();
-    if (!error && data) homeworks.push(data[0]); else homeworks.push({ id: Date.now(), name, duration, repeat, completed });
-    renderHomeworks(); updateAllGraphs(); updateRepeatSummary();
-  });
+            const data = last7Days.map(day => {
+                const logs = localDb.focusLogs.filter(l => l.date === day);
+                return logs.reduce((acc, curr) => acc + (curr.duration / 60), 0); 
+            });
 
-  document.getElementById('addAssignmentBtn').addEventListener('click', async () => {
-    const name = prompt('Assignment title', 'Research paper');
-    if (!name) return;
-    const duration = parseInt(prompt('Duration (minutes)', '120'), 10);
-    const repeat = prompt('Repeat pattern', 'biweekly');
-    const completed = confirm('Completed?');
-    const { data, error } = await supabase.from('assignments').insert({ name, duration, repeat, completed }).select();
-    if (!error && data) assignments.push(data[0]); else assignments.push({ id: Date.now(), name, duration, repeat, completed });
-    renderAssignments(); updateAllGraphs(); updateRepeatSummary();
-  });
+            if (focusChart) focusChart.destroy();
+            focusChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Focus Minutes',
+                        data: data,
+                        backgroundColor: '#4f46e5',
+                        borderRadius: 12,
+                        barThickness: 15
+                    }]
+                },
+                options: {
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
+                }
+            });
+        }
 
-  // ---- initial load ----
-  initApp();
+        function updateStats() {
+            const today = new Date().toISOString().split('T')[0];
+            const logs = localDb.focusLogs;
+            
+            const todayMins = logs.filter(l => l.date === today).reduce((a,b) => a + b.duration, 0) / 60;
+            const dayEl = document.getElementById('dash-day-time');
+            if (dayEl) dayEl.innerText = `${Math.floor(todayMins / 60)}h ${Math.round(todayMins % 60)}m`;
+            
+            const weekMins = logs.reduce((a,b) => a + b.duration, 0) / 60;
+            const weekEl = document.getElementById('dash-week-time');
+            if (weekEl) weekEl.innerText = `${Math.floor(weekMins / 60)}h ${Math.round(weekMins % 60)}m`;
 
-  // ---- if supabase tables not exist, the fallback will inject demo. also re-run charts every 2 seconds if needed? Not necessary. 
-  // but we add a little extra: when data changes (buttons) we update.
-  window.renderAllLists = renderAllLists;
-  window.updateAllGraphs = updateAllGraphs;
+            const totalEl = document.getElementById('total-study-time');
+            if (totalEl) totalEl.innerText = `${Math.floor(weekMins / 60)}h`;
+        }
 
-  // ---- Manual interval to keep charts fresh (after local adds) ----
-  setInterval(() => {
-    updateAllGraphs();
-    updateRepeatSummary();
-  }, 1000); // subtle refresh
+        function renderSubjects() {
+            const html = localDb.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            document.querySelectorAll('.subject-select').forEach(sel => sel.innerHTML = html);
+        }
 
-</script>
+        // Standard helpers
+        window.switchTab = (id) => {
+            const targetTab = document.getElementById(`tab-${id}`);
+            if (!targetTab) return;
 
-<!-- create tables automatically if not exists? Not possible due to perms, but demo shows robust fallback  -->
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            targetTab.classList.add('active');
+            
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            if (event && event.currentTarget) {
+                event.currentTarget.classList.add('active');
+            }
+            
+            const titleEl = document.getElementById('header-title');
+            if (titleEl) titleEl.innerText = id.replace(/-/g, ' ');
+            
+            if (id === 'dashboard') setTimeout(renderChart, 100);
+            lucide.createIcons();
+        };
+
+        window.openModal = (id) => {
+            const overlay = document.getElementById('modal-overlay');
+            const modal = document.getElementById(id);
+            if (overlay && modal) {
+                overlay.classList.remove('hidden');
+                document.querySelectorAll('.modal-window').forEach(m => m.classList.add('hidden'));
+                modal.classList.remove('hidden');
+            }
+        };
+
+        window.closeModal = () => {
+            const overlay = document.getElementById('modal-overlay');
+            if (overlay) overlay.classList.add('hidden');
+        };
+
+        // Clock
+        setInterval(() => {
+            const now = new Date();
+            const timeEl = document.getElementById('current-time');
+            const dateEl = document.getElementById('current-date');
+            if (timeEl) timeEl.innerText = now.toLocaleTimeString();
+            if (dateEl) dateEl.innerText = now.toDateString();
+        }, 1000);
+
+    </script>
 </body>
 </html>

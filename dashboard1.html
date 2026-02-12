@@ -154,7 +154,16 @@
                 <div id="tab-academic" class="tab-content space-y-8">
                     <h3 class="text-3xl font-black">Academic Hub</h3>
                     <div class="bg-white p-8 rounded-[2rem] border border-slate-200">
-                        <p class="text-slate-500 font-medium italic">Course materials and resources will appear here.</p>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div class="space-y-4">
+                                <h4 class="text-sm font-black text-slate-400 uppercase">Homework Overview</h4>
+                                <div id="academic-hw-list" class="space-y-4"></div>
+                            </div>
+                            <div class="space-y-4">
+                                <h4 class="text-sm font-black text-slate-400 uppercase">Exam Overview</h4>
+                                <div id="academic-exam-list" class="space-y-4"></div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -214,17 +223,17 @@
                         <option value="none">Once</option>
                         <option value="weekly">Weekly</option>
                         <option value="biweekly">Bi-weekly</option>
-                    </select>
-                </div>
-                <button type="submit" class="w-full bg-rose-600 text-white py-4 rounded-2xl font-black">Initialize Session</button>
-            </form>
-        </div>
-    </div>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, doc, onSnapshot, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
 
-    <script>
         // --- Supabase Config & Initialization ---
-        const config = JSON.parse(__supabase_config);
-        const supabase = supabase.createClient(config.url, config.key);
+        // REPLACE THESE VALUES WITH YOUR ACTUAL SUPABASE KEYS
+        const SUPABASE_URL = "https://lkxhfkvptlzbsccdouzd.supabase.co";
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxreGhma3ZwdGx6YnNjY2RvdXpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTA1MjQsImV4cCI6MjA4NjQ4NjUyNH0.kiXW5U5cu0-JkK0ewx2hWLMeG9h5co1xH5_5Tn3VLBU";
+        
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         let user = null;
         let localDb = {
@@ -238,7 +247,7 @@
 
         // --- Auth & Lifecycle ---
         async function init() {
-            const { data: { session } } = await supabase.auth.getSession();
+            const { data: { session } } = await supabaseClient.auth.getSession();
             if (session) {
                 user = session.user;
                 document.getElementById('sync-status').innerText = 'Synced: ' + user.email;
@@ -246,7 +255,7 @@
                 loadInitialData();
             } else {
                 // For demo/canvas, sign in anonymously or use credentials
-                const { data, error } = await supabase.auth.signInAnonymously();
+                const { data, error } = await supabaseClient.auth.signInAnonymously();
                 if (data.user) {
                     user = data.user;
                     startRealtime();
@@ -257,9 +266,9 @@
 
         async function loadInitialData() {
             const [sRes, stRes, lRes] = await Promise.all([
-                supabase.from('sessions').select('*'),
-                supabase.from('subtasks').select('*'),
-                supabase.from('focus_logs').select('*')
+                supabaseClient.from('sessions').select('*'),
+                supabaseClient.from('subtasks').select('*'),
+                supabaseClient.from('focus_logs').select('*')
             ]);
             
             if (!sRes.error) localDb.sessions = sRes.data;
@@ -272,7 +281,7 @@
         }
 
         function startRealtime() {
-            supabase.channel('db-changes')
+            supabaseClient.channel('db-changes')
                 .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' }, payload => {
                     handlePayload('sessions', payload);
                 })
@@ -338,7 +347,7 @@
                 duration: 1500, 
                 date: new Date().toISOString().split('T')[0] 
             };
-            await supabase.from('focus_logs').insert([log]);
+            await supabaseClient.from('focus_logs').insert([log]);
             timeLeft = 1500;
             timerRunning = false;
             updateTimerUI();
@@ -354,7 +363,7 @@
             session.category = category;
             session.user_id = user.id;
             
-            await supabase.from('sessions').insert([session]);
+            await supabaseClient.from('sessions').insert([session]);
             closeModal();
             e.target.reset();
         };
@@ -372,7 +381,7 @@
             if (!user) return;
             const title = document.getElementById('subtask-input').value;
             if (!title) return;
-            await supabase.from('subtasks').insert([{
+            await supabaseClient.from('subtasks').insert([{
                 user_id: user.id,
                 session_id: activeSessionId,
                 title,
@@ -384,7 +393,7 @@
 
         window.toggleSubtask = async (id, currentStatus) => {
             if (!user) return;
-            await supabase.from('subtasks')
+            await supabaseClient.from('subtasks')
                 .update({ completed: !currentStatus })
                 .eq('id', id);
         };
@@ -400,6 +409,8 @@
             const hwList = document.getElementById('main-hw-list');
             const examList = document.getElementById('main-exam-list');
             const pendingList = document.getElementById('quick-pending-list');
+            const academicHwList = document.getElementById('academic-hw-list');
+            const academicExamList = document.getElementById('academic-exam-list');
 
             if (!hwList || !examList || !pendingList) return;
 
@@ -441,8 +452,15 @@
                 `;
             };
 
-            hwList.innerHTML = sessions.filter(s => s.category === 'hw').map(renderCard).join('');
-            examList.innerHTML = sessions.filter(s => s.category === 'exam').map(renderCard).join('');
+            const hwContent = sessions.filter(s => s.category === 'hw').map(renderCard).join('');
+            const examContent = sessions.filter(s => s.category === 'exam').map(renderCard).join('');
+
+            hwList.innerHTML = hwContent;
+            examList.innerHTML = examContent;
+            
+            // Populate Academic Hub as well
+            if (academicHwList) academicHwList.innerHTML = hwContent || '<p class="text-slate-400 text-sm italic">No homework sessions.</p>';
+            if (academicExamList) academicExamList.innerHTML = examContent || '<p class="text-slate-400 text-sm italic">No exam sessions.</p>';
             
             pendingList.innerHTML = subs.filter(sub => !sub.completed).slice(0, 5).map(sub => `
                 <div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">

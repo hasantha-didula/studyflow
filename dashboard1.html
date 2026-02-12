@@ -52,8 +52,9 @@
                 <button onclick="switchTab('calendar')" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
                     <i data-lucide="calendar" class="w-5 h-5"></i> Calendar
                 </button>
-                <button onclick="switchTab('academic')" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
-                    <i data-lucide="book-open" class="w-5 h-5"></i> Academic Hub
+                <!-- ANALYZE SECTION -->
+                <button onclick="switchTab('analyze')" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
+                    <i data-lucide="trending-up" class="w-5 h-5"></i> Analyze
                 </button>
             </nav>
 
@@ -90,6 +91,46 @@
                         <div class="bg-white p-8 rounded-[2rem] border border-slate-200">
                             <p class="text-[10px] font-black uppercase text-slate-400">Total Focus</p>
                             <h4 class="text-4xl font-black mt-2 text-slate-800" id="dash-total-focus">0h</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ANALYZE TAB -->
+                <div id="tab-analyze" class="tab-content space-y-8">
+                    <div class="flex justify-between items-end">
+                        <div class="space-y-1">
+                            <h3 class="text-3xl font-black">Performance Analytics</h3>
+                            <p class="text-xs font-bold text-slate-400 uppercase">Exam Score Progression</p>
+                        </div>
+                        <div class="flex gap-4">
+                            <select id="analysis-subject-filter" class="subject-select px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold outline-none shadow-sm" onchange="renderAnalysisChart()">
+                                <!-- Dynamic options -->
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
+                        <div class="h-[400px] w-full">
+                            <canvas id="analysisChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-indigo-50/50 p-8 rounded-[2rem] border border-indigo-100/50">
+                            <p class="text-[10px] font-black text-indigo-400 uppercase mb-2">Trend Insights</p>
+                            <h4 class="text-xl font-black text-slate-800 mb-4">Predicted Next Score</h4>
+                            <div class="flex items-baseline gap-3">
+                                <span class="text-4xl font-black text-indigo-600" id="predicted-score">--</span>
+                                <span class="text-sm font-bold text-slate-400">based on recent velocity</span>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 p-8 rounded-[2rem] border border-slate-100">
+                            <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Historical Average</p>
+                            <h4 class="text-xl font-black text-slate-800 mb-4">Average Grade</h4>
+                            <div class="flex items-baseline gap-3">
+                                <span class="text-4xl font-black text-slate-800" id="average-score">--</span>
+                                <span class="text-sm font-bold text-slate-400">overall performance</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -164,27 +205,6 @@
                         </div>
                     </div>
                     <div id="calendar-container" class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm min-h-[500px]"></div>
-                </div>
-
-                <!-- ACADEMIC HUB TAB -->
-                <div id="tab-academic" class="tab-content space-y-8">
-                    <h3 class="text-3xl font-black">Academic Summary</h3>
-                    <div class="bg-white p-8 rounded-[2rem] border border-slate-200">
-                        <div id="academic-summary-list" class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div class="space-y-4">
-                                <h4 class="text-sm font-black text-slate-400 uppercase">Class Log</h4>
-                                <div id="academic-class-list" class="space-y-4"></div>
-                            </div>
-                            <div class="space-y-4">
-                                <h4 class="text-sm font-black text-slate-400 uppercase">Assignment Log</h4>
-                                <div id="academic-hw-list" class="space-y-4"></div>
-                            </div>
-                            <div class="space-y-4">
-                                <h4 class="text-sm font-black text-slate-400 uppercase">Exam Log</h4>
-                                <div id="academic-exam-list" class="space-y-4"></div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </main>
@@ -299,11 +319,25 @@
             ],
             sessions: [], 
             subtasks: [], 
-            focusLogs: []  
+            focusLogs: [],
+            examMarks: [
+                { subject_id: 's1', date: '2025-10-01', score: 65 },
+                { subject_id: 's1', date: '2025-11-01', score: 72 },
+                { subject_id: 's1', date: '2025-12-01', score: 78 },
+                { subject_id: 's1', date: '2026-01-01', score: 85 },
+                { subject_id: 's2', date: '2025-10-15', score: 45 },
+                { subject_id: 's2', date: '2025-11-15', score: 58 },
+                { subject_id: 's2', date: '2025-12-15', score: 60 },
+                { subject_id: 's2', date: '2026-01-15', score: 62 },
+                { subject_id: 's3', date: '2025-10-10', score: 80 },
+                { subject_id: 's3', date: '2025-11-10', score: 82 },
+                { subject_id: 's3', date: '2025-12-10', score: 81 },
+                { subject_id: 's3', date: '2026-01-10', score: 88 }
+            ]
         };
 
         let activeSessionId = null;
-        let focusChart = null;
+        let analysisChart = null;
         let currentCalDate = new Date();
         let currentCalView = 'month';
 
@@ -331,10 +365,8 @@
             if (!lRes.error) localDb.focusLogs = lRes.data || [];
             renderAll();
             updateStats();
-            renderChart();
         }
 
-        // --- Logic Helpers ---
         function formatTime(timeStr) {
             if (!timeStr) return '';
             const [hours, mins] = timeStr.split(':');
@@ -364,7 +396,7 @@
             return false;
         }
 
-        // --- Timer Logic ---
+        // TIMER LOGIC
         let timeLeft = 1500;
         let timerRunning = false;
         let timerInterval;
@@ -401,10 +433,10 @@
             if (supabaseClient && user) await supabaseClient.from('focus_logs').insert([log]);
             localDb.focusLogs.push(log);
             timeLeft = 1500; timerRunning = false;
-            updateTimerUI(); updateStats(); renderChart();
+            updateTimerUI(); updateStats();
         }
 
-        // --- Calendar ---
+        // CALENDAR LOGIC
         window.setCalendarView = (view) => {
             currentCalView = view;
             document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
@@ -466,12 +498,96 @@
             container.innerHTML = `<div class="p-10 flex justify-center min-h-[500px]"><div class="w-full max-w-xl space-y-4">${sessions.length ? sessions.map(s => `<div class="bg-white p-6 rounded-[2rem] border border-slate-100 flex items-center justify-between shadow-sm"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-2xl flex items-center justify-center ${s.category === 'class' ? 'bg-indigo-100 text-indigo-600' : s.category === 'hw' ? 'bg-amber-100 text-amber-600' : 'bg-rose-100 text-rose-600'}"><i data-lucide="${s.category === 'class' ? 'graduation-cap' : s.category === 'hw' ? 'book' : 'award'}" class="w-6 h-6"></i></div><div><p class="text-[10px] font-black uppercase opacity-40">${s.category} • ${formatTime(s.start_time)} - ${formatTime(s.end_time)}</p><h5 class="text-lg font-black">${s.title}</h5></div></div></div>`).join('') : '<div class="text-center py-20 text-slate-400 font-bold">No sessions found.</div>'}</div></div>`;
         }
 
-        // --- Manager UI ---
+        // ANALYSIS CHART LOGIC
+        window.renderAnalysisChart = () => {
+            const canvas = document.getElementById('analysisChart');
+            if (!canvas) return;
+            const subjectId = document.getElementById('analysis-subject-filter').value;
+            const marks = localDb.examMarks.filter(m => m.subject_id === subjectId).sort((a,b) => new Date(a.date) - new Date(b.date));
+            
+            const labels = marks.map(m => new Date(m.date).toLocaleDateString(undefined, { month: 'short', year: '2-digit' }));
+            const dataValues = marks.map(m => m.score);
+
+            // Simple Linear Trend Line Calculation (y = mx + b)
+            let trendValues = [];
+            if (dataValues.length > 1) {
+                const n = dataValues.length;
+                let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+                for (let i = 0; i < n; i++) {
+                    sumX += i;
+                    sumY += dataValues[i];
+                    sumXY += i * dataValues[i];
+                    sumXX += i * i;
+                }
+                const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+                const intercept = (sumY - slope * sumX) / n;
+                
+                for (let i = 0; i < n; i++) trendValues.push(slope * i + intercept);
+                
+                // Prediction for next step (index n)
+                const prediction = Math.min(100, Math.max(0, Math.round(slope * n + intercept)));
+                document.getElementById('predicted-score').innerText = prediction + '%';
+            } else {
+                document.getElementById('predicted-score').innerText = '--';
+            }
+
+            const avg = dataValues.length ? Math.round(dataValues.reduce((a,b) => a+b, 0) / dataValues.length) : '--';
+            document.getElementById('average-score').innerText = avg + '%';
+
+            if (analysisChart) analysisChart.destroy();
+            
+            analysisChart = new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Exam Mark',
+                            data: dataValues,
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            borderWidth: 4,
+                            pointRadius: 6,
+                            pointBackgroundColor: '#4f46e5',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Performance Trend',
+                            data: trendValues,
+                            borderColor: 'rgba(79, 70, 229, 0.3)',
+                            borderDash: [5, 5],
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: { 
+                        legend: { display: true, position: 'top', labels: { font: { weight: 'bold', family: 'Plus Jakarta Sans' } } },
+                        tooltip: { backgroundColor: '#1e293b', padding: 12, titleFont: { size: 14, weight: 'bold' } }
+                    },
+                    scales: {
+                        y: { 
+                            min: 0, max: 100, 
+                            grid: { borderDash: [2, 2], color: '#f1f5f9' },
+                            ticks: { font: { weight: 'bold' }, callback: (v) => v + '%' }
+                        },
+                        x: { grid: { display: false }, ticks: { font: { weight: 'bold' } } }
+                    }
+                }
+            });
+        };
+
+        // UI & MANAGER LOGIC
         function renderManager() {
             const categories = ['class', 'hw', 'exam'];
             categories.forEach(cat => {
                 const list = document.getElementById(`main-${cat}-list`);
-                const acadList = document.getElementById(`academic-${cat}-list`);
                 const sessions = localDb.sessions.filter(s => s.category === cat).sort((a,b) => (a.start_time || '').localeCompare(b.start_time || ''));
                 
                 const html = sessions.map(s => {
@@ -494,12 +610,10 @@
                         </div>`;
                 }).join('');
                 if(list) list.innerHTML = html || '<div class="text-center py-10 text-slate-400 text-xs italic">Nothing yet</div>';
-                if(acadList) acadList.innerHTML = html;
             });
             lucide.createIcons();
         }
 
-        // --- Core Functions ---
         const handleSessionSubmit = async (e, category) => {
             e.preventDefault();
             const formData = new FormData(e.target);
@@ -549,17 +663,10 @@
             renderAll();
         };
 
-        function renderChart() {
-            const canvas = document.getElementById('focusChart');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            const data = [10, 25, 40, 30, 60, 20, 45]; // Placeholder
-            if (focusChart) focusChart.destroy();
-            focusChart = new Chart(ctx, { type: 'bar', data: { labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], datasets: [{ data, backgroundColor: '#4f46e5', borderRadius: 8 }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } } });
-        }
-
         function updateStats() {
             document.getElementById('dash-total-tasks').innerText = localDb.sessions.length;
+            const focusMinutes = localDb.focusLogs.reduce((acc, log) => acc + (log.duration / 60), 0);
+            document.getElementById('dash-total-focus').innerText = Math.round(focusMinutes / 60) + 'h';
         }
 
         function renderAll() {
@@ -572,10 +679,18 @@
 
         window.switchTab = (id) => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.getElementById(`tab-${id}`).classList.add('active');
+            const target = document.getElementById(`tab-${id}`);
+            if(target) target.classList.add('active');
+            
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            // Find nav link to activate
+            const links = Array.from(document.querySelectorAll('.nav-link'));
+            const activeLink = links.find(l => l.getAttribute('onclick').includes(id));
+            if(activeLink) activeLink.classList.add('active');
+
             document.getElementById('header-title').innerText = id.replace(/-/g, ' ');
-            if (id === 'dashboard') setTimeout(renderChart, 100);
+            
+            if (id === 'analyze') setTimeout(renderAnalysisChart, 100);
             if (id === 'calendar') renderCalendar();
             lucide.createIcons();
         };

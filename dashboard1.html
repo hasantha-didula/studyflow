@@ -252,7 +252,7 @@
                 <input name="title" required placeholder="Assignment Title" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
                 <div class="grid grid-cols-2 gap-4">
                     <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
-                    <input name="deadline" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                    <input name="date" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -374,7 +374,7 @@
         }
 
         function isSessionOnDate(session, targetDateStr) {
-            const initialDateStr = session.date || session.deadline;
+            const initialDateStr = session.date;
             if (!initialDateStr) return false;
 
             const initial = new Date(initialDateStr + "T00:00:00");
@@ -596,7 +596,7 @@
                                 <div class="flex-1">
                                     <h5 class="font-black text-slate-800 leading-tight">${s.title}</h5>
                                     <div class="flex items-center gap-2 mt-1">
-                                        <p class="text-[10px] font-bold text-slate-400 uppercase">${s.date || s.deadline}</p>
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase">${s.date}</p>
                                         <span class="text-[10px] font-black text-indigo-500 uppercase bg-indigo-50 px-2 py-0.5 rounded">${formatTime(s.start_time)}</span>
                                     </div>
                                 </div>
@@ -610,22 +610,34 @@
             lucide.createIcons();
         }
 
-        // UPDATED: Persist new sessions to Supabase
+        /**
+         * UPDATED: FIXED DATABASE PERSISTENCE FOR ALL SESSION TYPES
+         * This handles Classes, Homeworks, and Exams.
+         */
         const handleSessionSubmit = async (e, category) => {
             e.preventDefault();
             const formData = new FormData(e.target);
             const sessionData = Object.fromEntries(formData.entries());
+            
+            // Generate unique ID and link to user
+            sessionData.id = crypto.randomUUID();
             sessionData.category = category;
             sessionData.user_id = user?.id || null;
-            sessionData.id = crypto.randomUUID();
+            
+            // Standardize field names (ensure 'date' is present even if form uses 'deadline')
+            if (sessionData.deadline) {
+                sessionData.date = sessionData.deadline;
+                delete sessionData.deadline;
+            }
 
-            // Optimistic Update
+            // 1. Optimistic UI update
             localDb.sessions.push(sessionData);
             renderAll();
             updateStats();
             closeModal();
             e.target.reset();
 
+            // 2. Database Sync
             if (supabaseClient && user) {
                 try {
                     const { data, error } = await supabaseClient
@@ -634,18 +646,18 @@
                         .select();
                     
                     if (error) {
-                        console.error('Database sync error:', error);
-                        // Optional: remove from local if critical failure
-                        // localDb.sessions = localDb.sessions.filter(s => s.id !== sessionData.id);
+                        console.error(`Supabase Error [${category}]:`, error.message);
                     } else if (data) {
-                        // Replace optimistic object with DB object (in case of computed fields)
+                        console.log(`Successfully stored ${category} in database`);
+                        // Sync local object with server data if needed
                         const idx = localDb.sessions.findIndex(s => s.id === sessionData.id);
                         if (idx !== -1) localDb.sessions[idx] = data[0];
-                        renderAll();
                     }
                 } catch (err) {
-                    console.error('Submission failed:', err);
+                    console.error('Critical sync failure:', err);
                 }
+            } else {
+                console.warn('Sync skipped: Not connected to Supabase or user not authenticated.');
             }
         };
 
@@ -735,12 +747,16 @@
         window.closeModal = () => document.getElementById('modal-overlay').classList.add('hidden');
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Attach form handlers
             const classForm = document.getElementById('class-form');
             if (classForm) classForm.onsubmit = (e) => handleSessionSubmit(e, 'class');
+            
             const hwForm = document.getElementById('hw-form');
             if (hwForm) hwForm.onsubmit = (e) => handleSessionSubmit(e, 'hw');
+            
             const examForm = document.getElementById('exam-form');
             if (examForm) examForm.onsubmit = (e) => handleSessionSubmit(e, 'exam');
+            
             init();
         });
 

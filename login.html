@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StudyFlow - Login</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-slide { animation: slideIn 0.4s ease forwards; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+    <div id="auth-view" class="min-h-screen flex flex-col items-center justify-center p-4">
+        <div class="w-full max-w-md space-y-8 animate-slide">
+            <div class="text-center">
+                <div class="w-16 h-16 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-indigo-200 mx-auto mb-6">
+                    <i data-lucide="graduation-cap" class="text-white w-10 h-10"></i>
+                </div>
+                <h1 class="text-3xl font-black tracking-tight text-slate-900">StudyFlow</h1>
+                <p class="text-slate-500 mt-2">Sign in to your academic portal</p>
+            </div>
+
+            <div class="bg-white p-8 rounded-2xl border border-slate-200 shadow-sm">
+                <form id="auth-form" class="space-y-6">
+                    <div class="space-y-4">
+                        <div class="relative">
+                            <i data-lucide="mail" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                            <input id="auth-email" type="email" required placeholder="Email address" class="w-full pl-10 pr-4 py-3 bg-slate-50 border-none rounded-xl outline-none focus:ring-2 ring-indigo-500/20">
+                        </div>
+                        <div class="relative">
+                            <i data-lucide="lock" class="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                            <input id="auth-password" type="password" required placeholder="Password" class="w-full pl-10 pr-4 py-3 bg-slate-50 border-none rounded-xl outline-none focus:ring-2 ring-indigo-500/20">
+                        </div>
+                        
+                        <div id="gender-selection" class="hidden space-y-2">
+                            <p class="text-xs font-bold text-slate-400 uppercase tracking-wider ml-1">I am a...</p>
+                            <div class="grid grid-cols-2 gap-3">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="gender" value="boy" checked class="peer hidden">
+                                    <div class="text-center py-2 rounded-xl bg-slate-50 border border-transparent peer-checked:border-indigo-600 peer-checked:bg-indigo-50 text-slate-500 peer-checked:text-indigo-600 font-bold transition-all">Boy</div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="gender" value="girl" class="peer hidden">
+                                    <div class="text-center py-2 rounded-xl bg-slate-50 border border-transparent peer-checked:border-indigo-600 peer-checked:bg-indigo-50 text-slate-500 peer-checked:text-indigo-600 font-bold transition-all">Girl</div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="auth-error" class="hidden p-3 bg-red-50 text-red-600 text-xs font-bold rounded-lg border border-red-100"></div>
+
+                    <button type="submit" id="auth-submit-btn" class="w-full bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 hover:bg-indigo-700 active:scale-95 transition-all">
+                        <span id="auth-btn-text">Login to Dashboard</span>
+                        <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                    </button>
+                </form>
+
+                <div class="mt-8 pt-6 border-t border-slate-100 text-center">
+                    <button id="toggle-auth-mode" class="text-sm font-semibold text-indigo-600 hover:text-indigo-700">
+                        Don't have an account? Sign up
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        const SUPABASE_URL = "https://lkxhfkvptlzbsccdouzd.supabase.co"; 
+        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxreGhma3ZwdGx6YnNjY2RvdXpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTA1MjQsImV4cCI6MjA4NjQ4NjUyNH0.kiXW5U5cu0-JkK0ewx2hWLMeG9h5co1xH5_5Tn3VLBU"; 
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        let isLoginMode = true;
+        const authForm = document.getElementById('auth-form');
+        const authError = document.getElementById('auth-error');
+        const toggleAuthBtn = document.getElementById('toggle-auth-mode');
+        const authBtnText = document.getElementById('auth-btn-text');
+        const genderSelection = document.getElementById('gender-selection');
+
+        toggleAuthBtn.onclick = () => {
+            isLoginMode = !isLoginMode;
+            authBtnText.innerText = isLoginMode ? 'Login to Dashboard' : 'Create Student Account';
+            toggleAuthBtn.innerText = isLoginMode ? "Don't have an account? Sign up" : "Already have an account? Log in";
+            genderSelection.classList.toggle('hidden', isLoginMode);
+        };
+
+        authForm.onsubmit = async (e) => {
+            e.preventDefault();
+            authError.classList.add('hidden');
+            const email = document.getElementById('auth-email').value;
+            const password = document.getElementById('auth-password').value;
+
+            try {
+                if (isLoginMode) {
+                    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+                    if (error) throw error;
+                    window.location.href = 'dashboard.html';
+                } else {
+                    const gender = document.querySelector('input[name="gender"]:checked').value;
+                    const { error } = await supabaseClient.auth.signUp({ 
+                        email, password,
+                        options: { data: { gender: gender } }
+                    });
+                    if (error) throw error;
+                    alert("Account created! You can now log in.");
+                    isLoginMode = true;
+                    toggleAuthBtn.click();
+                }
+            } catch (err) {
+                authError.innerText = err.message;
+                authError.classList.remove('hidden');
+            }
+        };
+
+        // If already logged in, redirect
+        const checkSession = async () => {
+            const { data } = await supabaseClient.auth.getSession();
+            if (data.session) window.location.href = 'dashboard.html';
+        };
+        checkSession();
+        lucide.createIcons();
+    </script>
+</body>
+</html>

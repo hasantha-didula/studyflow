@@ -52,7 +52,6 @@
                 <button onclick="switchTab('calendar')" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
                     <i data-lucide="calendar" class="w-5 h-5"></i> Calendar
                 </button>
-                <!-- ANALYZE SECTION -->
                 <button onclick="switchTab('analyze')" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
                     <i data-lucide="trending-up" class="w-5 h-5"></i> Analyze
                 </button>
@@ -104,7 +103,6 @@
                         </div>
                         <div class="flex gap-4">
                             <select id="analysis-subject-filter" class="subject-select px-6 py-3 bg-white border border-slate-200 rounded-xl font-bold outline-none shadow-sm" onchange="renderAnalysisChart()">
-                                <!-- Dynamic options -->
                             </select>
                         </div>
                     </div>
@@ -508,7 +506,6 @@
             const labels = marks.map(m => new Date(m.date).toLocaleDateString(undefined, { month: 'short', year: '2-digit' }));
             const dataValues = marks.map(m => m.score);
 
-            // Simple Linear Trend Line Calculation (y = mx + b)
             let trendValues = [];
             if (dataValues.length > 1) {
                 const n = dataValues.length;
@@ -524,7 +521,6 @@
                 
                 for (let i = 0; i < n; i++) trendValues.push(slope * i + intercept);
                 
-                // Prediction for next step (index n)
                 const prediction = Math.min(100, Math.max(0, Math.round(slope * n + intercept)));
                 document.getElementById('predicted-score').innerText = prediction + '%';
             } else {
@@ -614,6 +610,7 @@
             lucide.createIcons();
         }
 
+        // UPDATED: Persist new sessions to Supabase
         const handleSessionSubmit = async (e, category) => {
             e.preventDefault();
             const formData = new FormData(e.target);
@@ -622,14 +619,34 @@
             sessionData.user_id = user?.id || null;
             sessionData.id = crypto.randomUUID();
 
+            // Optimistic Update
+            localDb.sessions.push(sessionData);
+            renderAll();
+            updateStats();
+            closeModal();
+            e.target.reset();
+
             if (supabaseClient && user) {
-                const { data, error } = await supabaseClient.from('sessions').insert([sessionData]).select();
-                if (!error && data) localDb.sessions.push(data[0]);
-                else localDb.sessions.push(sessionData);
-            } else {
-                localDb.sessions.push(sessionData);
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('sessions')
+                        .insert([sessionData])
+                        .select();
+                    
+                    if (error) {
+                        console.error('Database sync error:', error);
+                        // Optional: remove from local if critical failure
+                        // localDb.sessions = localDb.sessions.filter(s => s.id !== sessionData.id);
+                    } else if (data) {
+                        // Replace optimistic object with DB object (in case of computed fields)
+                        const idx = localDb.sessions.findIndex(s => s.id === sessionData.id);
+                        if (idx !== -1) localDb.sessions[idx] = data[0];
+                        renderAll();
+                    }
+                } catch (err) {
+                    console.error('Submission failed:', err);
+                }
             }
-            renderAll(); closeModal(); e.target.reset();
         };
 
         window.openSubtaskModal = (sessionId) => {
@@ -650,23 +667,37 @@
                 user_id: user?.id || null
             };
 
-            if (supabaseClient && user) {
-                const { data, error } = await supabaseClient.from('subtasks').insert([subtask]).select();
-                if (!error && data) localDb.subtasks.push(data[0]);
-                else localDb.subtasks.push(subtask);
-            } else {
-                localDb.subtasks.push(subtask);
-            }
-
+            localDb.subtasks.push(subtask);
+            renderAll();
             input.value = '';
             closeModal();
-            renderAll();
+
+            if (supabaseClient && user) {
+                const { data, error } = await supabaseClient.from('subtasks').insert([subtask]).select();
+                if (!error && data) {
+                    const idx = localDb.subtasks.findIndex(s => s.id === subtask.id);
+                    if (idx !== -1) localDb.subtasks[idx] = data[0];
+                    renderAll();
+                }
+            }
         };
 
         function updateStats() {
-            document.getElementById('dash-total-tasks').innerText = localDb.sessions.length;
+            const dashTotalTasks = document.getElementById('dash-total-tasks');
+            if (dashTotalTasks) dashTotalTasks.innerText = localDb.sessions.length;
+            
             const focusMinutes = localDb.focusLogs.reduce((acc, log) => acc + (log.duration / 60), 0);
-            document.getElementById('dash-total-focus').innerText = Math.round(focusMinutes / 60) + 'h';
+            const dashTotalFocus = document.getElementById('dash-total-focus');
+            if (dashTotalFocus) dashTotalFocus.innerText = Math.round(focusMinutes / 60) + 'h';
+            
+            const dashDayTime = document.getElementById('dash-day-time');
+            if (dashDayTime) {
+                const today = new Date().toISOString().split('T')[0];
+                const todayMins = localDb.focusLogs
+                    .filter(l => l.date === today)
+                    .reduce((acc, log) => acc + (log.duration / 60), 0);
+                dashDayTime.innerText = `${Math.floor(todayMins / 60)}h ${Math.round(todayMins % 60)}m`;
+            }
         }
 
         function renderAll() {
@@ -683,7 +714,6 @@
             if(target) target.classList.add('active');
             
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            // Find nav link to activate
             const links = Array.from(document.querySelectorAll('.nav-link'));
             const activeLink = links.find(l => l.getAttribute('onclick').includes(id));
             if(activeLink) activeLink.classList.add('active');

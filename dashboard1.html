@@ -195,6 +195,15 @@
                     <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
                     <input name="deadline" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 </div>
+                <div class="bg-slate-50 p-4 rounded-2xl">
+                    <label class="text-[10px] font-black text-slate-400 uppercase">Repeat Frequency</label>
+                    <select name="repeat" class="w-full bg-transparent outline-none font-bold">
+                        <option value="none">Once</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="biweekly">Bi-weekly</option>
+                        <option value="monthly">Monthly</option>
+                    </select>
+                </div>
                 <button type="submit" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Initialize Session</button>
             </form>
         </div>
@@ -223,11 +232,15 @@
                         <option value="none">Once</option>
                         <option value="weekly">Weekly</option>
                         <option value="biweekly">Bi-weekly</option>
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, doc, onSnapshot, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+                        <option value="monthly">Monthly</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-rose-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-rose-100">Initialize Session</button>
+            </form>
+        </div>
+    </div>
 
+    <script type="module">
         // --- Supabase Config & Initialization ---
         // REPLACE THESE VALUES WITH YOUR ACTUAL SUPABASE KEYS
         const SUPABASE_URL = "https://lkxhfkvptlzbsccdouzd.supabase.co";
@@ -254,7 +267,6 @@
                 startRealtime();
                 loadInitialData();
             } else {
-                // For demo/canvas, sign in anonymously or use credentials
                 const { data, error } = await supabaseClient.auth.signInAnonymously();
                 if (data.user) {
                     user = data.user;
@@ -334,7 +346,8 @@
             const secs = timeLeft % 60;
             document.getElementById('timer-display').innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
             const offset = 942.48 - (timeLeft / 1500) * 942.48;
-            document.getElementById('timer-progress').style.strokeDashoffset = offset;
+            const ring = document.getElementById('timer-progress');
+            if (ring) ring.style.strokeDashoffset = offset;
         }
 
         async function completeSession() {
@@ -351,7 +364,6 @@
             timeLeft = 1500;
             timerRunning = false;
             updateTimerUI();
-            alert('Session Complete! Focus logged to Supabase.');
         }
 
         // --- Manager Logic ---
@@ -427,9 +439,12 @@
                 return `
                     <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
                         <div class="flex justify-between items-start">
-                            <div>
+                            <div class="flex-1">
                                 <h5 class="font-black text-slate-800">${s.title}</h5>
-                                <p class="text-[10px] font-bold text-${subColor}-500 uppercase">${s.deadline || s.date || 'No Date'}</p>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <p class="text-[10px] font-bold text-${subColor}-500 uppercase">${s.deadline || s.date || 'No Date'}</p>
+                                    ${s.repeat && s.repeat !== 'none' ? `<span class="bg-indigo-50 text-indigo-600 text-[8px] px-1.5 py-0.5 rounded font-black uppercase"><i data-lucide="refresh-cw" class="w-2 h-2 inline mr-1"></i>${s.repeat}</span>` : ''}
+                                </div>
                             </div>
                             <button onclick="openSubtaskModal('${s.id}')" class="p-2 bg-slate-50 rounded-xl hover:bg-indigo-600 hover:text-white transition-all">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
@@ -452,15 +467,11 @@
                 `;
             };
 
-            const hwContent = sessions.filter(s => s.category === 'hw').map(renderCard).join('');
-            const examContent = sessions.filter(s => s.category === 'exam').map(renderCard).join('');
-
-            hwList.innerHTML = hwContent;
-            examList.innerHTML = examContent;
+            hwList.innerHTML = sessions.filter(s => s.category === 'hw').map(renderCard).join('');
+            examList.innerHTML = sessions.filter(s => s.category === 'exam').map(renderCard).join('');
             
-            // Populate Academic Hub as well
-            if (academicHwList) academicHwList.innerHTML = hwContent || '<p class="text-slate-400 text-sm italic">No homework sessions.</p>';
-            if (academicExamList) academicExamList.innerHTML = examContent || '<p class="text-slate-400 text-sm italic">No exam sessions.</p>';
+            if (academicHwList) academicHwList.innerHTML = hwList.innerHTML || '<p class="text-slate-400 text-sm italic">No homework sessions.</p>';
+            if (academicExamList) academicExamList.innerHTML = examList.innerHTML || '<p class="text-slate-400 text-sm italic">No exam sessions.</p>';
             
             pendingList.innerHTML = subs.filter(sub => !sub.completed).slice(0, 5).map(sub => `
                 <div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
@@ -537,9 +548,8 @@
             targetTab.classList.add('active');
             
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            if (event && event.currentTarget) {
-                event.currentTarget.classList.add('active');
-            }
+            const btn = Array.from(document.querySelectorAll('.nav-link')).find(b => b.innerText.toLowerCase().includes(id));
+            if (btn) btn.classList.add('active');
             
             const titleEl = document.getElementById('header-title');
             if (titleEl) titleEl.innerText = id.replace(/-/g, ' ');
@@ -572,9 +582,7 @@
             if (dateEl) dateEl.innerText = now.toDateString();
         }, 1000);
 
-        // Start App
         window.onload = init;
-
     </script>
 </body>
 </html>

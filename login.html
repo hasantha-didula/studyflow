@@ -102,7 +102,7 @@
                 if (isLoginMode) {
                     const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
                     if (error) throw error;
-                    window.location.href = 'dashboard.html';
+                    window.location.href = 'dashboard1.html';
                 } else {
                     const gender = document.querySelector('input[name="gender"]:checked').value;
                     const { error } = await supabaseClient.auth.signUp({ 

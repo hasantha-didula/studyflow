@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StudyFlow Pro · Graphical Calendar & Weekly Plan</title>
+    <title>StudyFlow Pro · Supabase Integration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <!-- FullCalendar with all views (dayGrid, timeGrid, list) -->
+    <!-- FullCalendar -->
     <link href='https://cdn.jsdelivr.net/npm/@fullcalendar/core@6.1.15/main.min.css' rel='stylesheet' />
     <link href='https://cdn.jsdelivr.net/npm/@fullcalendar/daygrid@6.1.15/main.min.css' rel='stylesheet' />
     <link href='https://cdn.jsdelivr.net/npm/@fullcalendar/timegrid@6.1.15/main.min.css' rel='stylesheet' />
@@ -16,36 +16,22 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; background: #f8fafc; }
-        .nav-link.active { background: #4f46e5 !important; color: white !important; box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2); }
+        .nav-link.active { background: #4f46e5 !important; color: white !important; }
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.4s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
-        .timer-ring { transition: stroke-dashoffset 0.3s linear; transform: rotate(-90deg); transform-origin: 50% 50%; }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
         .fc { 
             --fc-border-color: #e9edf2; 
             --fc-button-text-color: #1e293b; 
             --fc-button-bg-color: white; 
             --fc-button-border-color: #e2e8f0; 
-            --fc-button-hover-bg-color: #f1f5f9; 
-            --fc-button-hover-border-color: #cbd5e1; 
-            --fc-button-active-bg-color: #e0e7ff; 
             --fc-today-bg-color: #eef2ff; 
             font-family: 'Plus Jakarta Sans', sans-serif; 
         }
-        .fc .fc-toolbar-title { font-size: 1.25rem; font-weight: 800; color: #0f172a; }
-        .fc .fc-col-header-cell-cushion { font-weight: 700; color: #334155; text-decoration: none; padding: 10px 4px; }
-        .fc .fc-daygrid-day-number { font-weight: 600; color: #475569; text-decoration: none; }
-        .fc .fc-timegrid-slot-label { font-weight: 500; color: #64748b; }
         .fc-event { 
             border-radius: 12px; border: none; padding: 4px 8px; font-weight: 700; 
-            font-size: 0.8rem; box-shadow: 0 3px 8px rgba(0,0,0,0.04); 
-            transition: transform 0.1s; backdrop-filter: blur(2px);
+            font-size: 0.8rem; 
         }
-        .fc-event:hover { transform: scale(1.01); filter: brightness(0.98); }
-        .fc .fc-timegrid-now-indicator-line { border-color: #4f46e5; border-width: 2px; }
-        .fc-timegrid-slot { height: 2.2em; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 overflow-hidden">
@@ -55,7 +41,7 @@
         <aside class="w-72 bg-white border-r border-slate-200 flex flex-col z-50">
             <div class="p-8">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-indigo-200 shadow-xl">
+                    <div class="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center">
                         <i data-lucide="zap" class="text-white w-6 h-6"></i>
                     </div>
                     <span class="font-extrabold text-xl tracking-tight italic">StudyFlow<span class="text-indigo-600">.</span></span>
@@ -63,30 +49,31 @@
             </div>
 
             <nav id="sidebar-nav" class="flex-1 px-4 space-y-1">
-                <button onclick="switchTab('dashboard')" data-tab="dashboard" class="nav-link active w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all">
+                <button onclick="switchTab('dashboard')" data-tab="dashboard" class="nav-link active w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
                     <i data-lucide="layout-grid" class="w-5 h-5"></i> Overview
                 </button>
-                <button onclick="switchTab('focus')" data-tab="focus" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all">
+                <button onclick="switchTab('focus')" data-tab="focus" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
                     <i data-lucide="timer" class="w-5 h-5"></i> Focus Mode
                 </button>
-                <button onclick="switchTab('manager')" data-tab="manager" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all">
+                <button onclick="switchTab('manager')" data-tab="manager" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
                     <i data-lucide="list-checks" class="w-5 h-5"></i> Task Manager
                 </button>
-                <button onclick="switchTab('academic')" data-tab="academic" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all">
+                <button onclick="switchTab('academic')" data-tab="academic" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
                     <i data-lucide="book-open" class="w-5 h-5"></i> Academic Hub
                 </button>
-                <button onclick="switchTab('calendar')" data-tab="calendar" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all">
+                <button onclick="switchTab('calendar')" data-tab="calendar" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
                     <i data-lucide="calendar-days" class="w-5 h-5"></i> Calendar
                 </button>
-                <button onclick="switchTab('analytics')" data-tab="analytics" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-all">
+                <button onclick="switchTab('analytics')" data-tab="analytics" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
                     <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Analytics
                 </button>
             </nav>
 
             <div class="p-6 border-t border-slate-100">
                 <div class="bg-indigo-50 rounded-2xl p-4">
-                    <p class="text-[10px] font-black text-indigo-400 uppercase">Supabase Cloud</p>
-                    <p id="sync-status" class="text-xs font-bold text-indigo-600">Initializing...</p>
+                    <p class="text-[10px] font-black text-indigo-400 uppercase">Supabase</p>
+                    <p id="sync-status" class="text-xs font-bold text-indigo-600">Checking connection...</p>
+                    <p id="auth-status" class="text-[10px] font-medium text-indigo-500 mt-1"></p>
                 </div>
             </div>
         </aside>
@@ -97,7 +84,7 @@
                 <h2 id="header-title" class="text-xl font-extrabold capitalize text-slate-800">Overview</h2>
                 <div id="current-time-container" class="text-right">
                     <p id="current-date" class="text-[10px] font-black text-slate-400 uppercase"></p>
-                    <p id="current-time" class="text-lg font-bold text-slate-700">00:00:00</p>
+                    <p id="current-time" class="text-lg font-bold text-slate-700"></p>
                 </div>
             </header>
 
@@ -119,10 +106,9 @@
                             <h4 class="text-4xl font-black mt-2 text-slate-800" id="dash-month-time">0h 00m</h4>
                         </div>
                     </div>
-
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div class="lg:col-span-2 space-y-6">
-                            <h3 class="text-lg font-black flex items-center gap-2">Weekly Focus Trend</h3>
+                            <h3 class="text-lg font-black">Weekly Focus Trend</h3>
                             <div class="bg-white p-6 rounded-[2rem] border border-slate-200 h-64">
                                 <canvas id="focusChart"></canvas>
                             </div>
@@ -150,7 +136,7 @@
                         <div class="flex items-center justify-center gap-4">
                             <select id="focus-type" class="px-6 py-4 bg-white border border-slate-200 rounded-2xl font-bold outline-none">
                                 <option value="class">Class Review</option>
-                                <option value="homework">Homework Session</option>
+                                <option value="homework">Homework</option>
                                 <option value="exam">Exam Prep</option>
                                 <option value="other">General Study</option>
                             </select>
@@ -164,23 +150,23 @@
                     <div class="flex justify-between items-center">
                         <h3 class="text-3xl font-black">Active Sessions</h3>
                         <div class="flex gap-3">
-                            <button onclick="openModal('modal-main-hw')" class="bg-amber-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-amber-100">New HW Session</button>
-                            <button onclick="openModal('modal-main-exam')" class="bg-rose-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-rose-100">New Exam Session</button>
-                            <button onclick="openModal('modal-main-class')" class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-emerald-100">+ Class</button>
+                            <button onclick="openModal('modal-main-hw')" class="bg-amber-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm">New HW</button>
+                            <button onclick="openModal('modal-main-exam')" class="bg-rose-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm">New Exam</button>
+                            <button onclick="openModal('modal-main-class')" class="bg-emerald-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm">+ Class</button>
                         </div>
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div class="space-y-4">
-                            <h4 class="text-sm font-black text-slate-400 uppercase">Homework Sessions</h4>
+                            <h4 class="text-sm font-black text-slate-400 uppercase">Homework</h4>
                             <div id="main-hw-list" class="space-y-4"></div>
                         </div>
                         <div class="space-y-4">
-                            <h4 class="text-sm font-black text-slate-400 uppercase">Exam Sessions</h4>
+                            <h4 class="text-sm font-black text-slate-400 uppercase">Exams</h4>
                             <div id="main-exam-list" class="space-y-4"></div>
                         </div>
                     </div>
                     <div class="space-y-4 mt-8">
-                        <h4 class="text-sm font-black text-slate-400 uppercase flex items-center gap-2"><i data-lucide="graduation-cap" class="w-4 h-4"></i> Upcoming Classes</h4>
+                        <h4 class="text-sm font-black text-slate-400 uppercase">Classes</h4>
                         <div id="main-class-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
                     </div>
                 </div>
@@ -190,49 +176,37 @@
                     <h3 class="text-3xl font-black">Academic Hub</h3>
                     <div class="bg-white p-8 rounded-[2rem] border border-slate-200">
                         <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                            <div class="space-y-4">
-                                <h4 class="text-sm font-black text-slate-400 uppercase">Homework Overview</h4>
-                                <div id="academic-hw-list" class="space-y-4"></div>
-                            </div>
-                            <div class="space-y-4">
-                                <h4 class="text-sm font-black text-slate-400 uppercase">Exam Overview</h4>
-                                <div id="academic-exam-list" class="space-y-4"></div>
-                            </div>
-                            <div class="space-y-4">
-                                <h4 class="text-sm font-black text-slate-400 uppercase">Class Schedule</h4>
-                                <div id="academic-class-list" class="space-y-4"></div>
-                            </div>
+                            <div id="academic-hw-list" class="space-y-4"></div>
+                            <div id="academic-exam-list" class="space-y-4"></div>
+                            <div id="academic-class-list" class="space-y-4"></div>
                         </div>
                     </div>
                 </div>
 
-                <!-- GRAPHICAL CALENDAR TAB -->
+                <!-- CALENDAR TAB -->
                 <div id="tab-calendar" class="tab-content space-y-8">
                     <div class="flex justify-between items-center">
                         <div>
-                            <h3 class="text-3xl font-black text-slate-800">Weekly Plan & Calendar</h3>
-                            <p class="text-xs text-slate-500 mt-1 font-medium">Day · Week · Month views — all your scheduled hours</p>
+                            <h3 class="text-3xl font-black">Weekly Plan</h3>
+                            <p class="text-xs text-slate-500 mt-1">Day · Week · Month views</p>
                         </div>
-                        <button onclick="openModal('modal-main-class')" class="bg-emerald-500 text-white px-6 py-3 rounded-xl font-bold shadow-md flex items-center gap-2 hover:bg-emerald-600 transition-all">
-                            <i data-lucide="plus" class="w-4 h-4"></i> Add Class
-                        </button>
+                        <button onclick="openModal('modal-main-class')" class="bg-emerald-500 text-white px-6 py-3 rounded-xl font-bold">Add Class</button>
                     </div>
-                    <div class="bg-white p-5 rounded-[2rem] border border-slate-200 shadow-sm">
+                    <div class="bg-white p-5 rounded-[2rem] border border-slate-200">
                         <div id="calendar-container" class="h-[620px] w-full"></div>
                     </div>
                 </div>
 
                 <!-- ANALYTICS TAB -->
                 <div id="tab-analytics" class="tab-content space-y-10">
-                    <h3 class="text-3xl font-black">Performance Analytics</h3>
-                    <div id="analytics-grid" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <h3 class="text-3xl font-black">Analytics</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div class="bg-white p-8 rounded-[2rem] border border-slate-200">
                              <p class="text-[10px] font-black uppercase text-slate-400">Total Study Time</p>
-                             <h4 class="text-3xl font-black mt-2 text-slate-800" id="total-study-time">0h</h4>
+                             <h4 class="text-3xl font-black mt-2" id="total-study-time">0h</h4>
                         </div>
                     </div>
                 </div>
-
             </div>
         </main>
     </div>
@@ -240,108 +214,170 @@
     <!-- MODALS -->
     <div id="modal-overlay" class="hidden fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
         
-        <!-- HW Modal -->
         <div id="modal-main-hw" class="modal-window hidden bg-white rounded-3xl w-full max-w-lg p-8 relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
-            <h3 class="text-2xl font-black mb-6">Create HW Session</h3>
+            <h3 class="text-2xl font-black mb-6">Homework Session</h3>
             <form id="hw-form" class="space-y-4">
-                <input name="title" required placeholder="Session Title" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
+                <input name="title" required placeholder="Title" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 <div class="grid grid-cols-2 gap-4">
-                    <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
+                    <select name="subject" class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                        <option value="Maths">Maths</option>
+                        <option value="Chemistry">Chemistry</option>
+                        <option value="Physics">Physics</option>
+                    </select>
                     <input name="deadline" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <input name="start_time" type="time" placeholder="Start time" class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
-                    <input name="end_time" type="time" placeholder="End time" class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                    <input name="start_time" type="time" placeholder="Start" class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                    <input name="end_time" type="time" placeholder="End" class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 </div>
-                <button type="submit" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Initialize Session</button>
+                <button type="submit" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Save</button>
             </form>
         </div>
 
-        <!-- Subtask Modal -->
         <div id="modal-subtask" class="modal-window hidden bg-white rounded-3xl w-full max-w-sm p-8 relative">
-             <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
-            <h3 class="text-xl font-black mb-4">Add Sub-task</h3>
-            <input id="subtask-input" placeholder="Subtask name..." class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none mb-4">
-            <button onclick="saveSubtask()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold">Add to Session</button>
+            <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <h3 class="text-xl font-black mb-4">Add Subtask</h3>
+            <input id="subtask-input" placeholder="Subtask name" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none mb-4">
+            <button onclick="saveSubtask()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold">Add</button>
         </div>
         
-        <!-- Exam Modal -->
         <div id="modal-main-exam" class="modal-window hidden bg-white rounded-3xl w-full max-w-lg p-8 relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
-            <h3 class="text-2xl font-black mb-6">Create Exam Session</h3>
+            <h3 class="text-2xl font-black mb-6">Exam Session</h3>
             <form id="exam-form" class="space-y-4">
-                <input name="title" required placeholder="Exam Name" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
+                <input name="title" required placeholder="Exam name" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 <div class="grid grid-cols-2 gap-4">
-                    <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
+                    <select name="subject" class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                        <option value="Maths">Maths</option>
+                        <option value="Chemistry">Chemistry</option>
+                        <option value="Physics">Physics</option>
+                    </select>
                     <input name="date" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
-                    <input name="start_time" type="time" placeholder="Start time" class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
-                    <input name="end_time" type="time" placeholder="End time" class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                    <input name="start_time" type="time" placeholder="Start" class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                    <input name="end_time" type="time" placeholder="End" class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 </div>
-                <button type="submit" class="w-full bg-rose-600 text-white py-4 rounded-2xl font-black">Initialize Session</button>
+                <button type="submit" class="w-full bg-rose-600 text-white py-4 rounded-2xl font-black">Save</button>
             </form>
         </div>
 
-        <!-- Class Modal -->
         <div id="modal-main-class" class="modal-window hidden bg-white rounded-3xl w-full max-w-lg p-8 relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
             <h3 class="text-2xl font-black mb-6">Add Class</h3>
             <form id="class-form" class="space-y-4">
-                <input name="title" required placeholder="Class name" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
+                <input name="title" required placeholder="Class name" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 <div class="grid grid-cols-2 gap-4">
-                    <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
+                    <select name="subject" class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                        <option value="Maths">Maths</option>
+                        <option value="Chemistry">Chemistry</option>
+                        <option value="Physics">Physics</option>
+                    </select>
                     <input name="date" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <input name="start_time" type="time" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                     <input name="end_time" type="time" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 </div>
-                <button type="submit" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black">Save Class</button>
+                <button type="submit" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black">Save</button>
             </form>
         </div>
     </div>
 
-    <!-- GLOBAL FUNCTIONS (Non-Module) -->
-    <script>
-        // Tab switching
-        window.switchTab = function(id) {
-            console.log('Switching to tab:', id);
-            const targetTab = document.getElementById(`tab-${id}`);
-            if (!targetTab) return;
+    <!-- SQL SCHEMA - Copy and run this in your Supabase SQL Editor -->
+    <!--
+    -- =============================================
+    -- SUPABASE DATABASE SCHEMA FOR STUDYFLOW PRO
+    -- Run this in your Supabase SQL Editor
+    -- =============================================
 
+    -- Enable UUID extension
+    CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+    -- Sessions table (homework, exams, classes)
+    CREATE TABLE IF NOT EXISTS sessions (
+        id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+        user_id UUID NOT NULL,
+        title TEXT NOT NULL,
+        subject TEXT,
+        category TEXT CHECK (category IN ('hw', 'exam', 'class')),
+        date DATE,
+        deadline DATE,
+        start_time TIME,
+        end_time TIME,
+        repeat TEXT DEFAULT 'none',
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+
+    -- Subtasks table
+    CREATE TABLE IF NOT EXISTS subtasks (
+        id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+        user_id UUID NOT NULL,
+        session_id UUID REFERENCES sessions(id) ON DELETE CASCADE,
+        title TEXT NOT NULL,
+        completed BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+
+    -- Focus logs table
+    CREATE TABLE IF NOT EXISTS focus_logs (
+        id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+        user_id UUID NOT NULL,
+        type TEXT,
+        duration INTEGER,
+        date DATE,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    );
+
+    -- Enable RLS but allow all operations for demo
+    ALTER TABLE sessions ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE subtasks ENABLE ROW LEVEL SECURITY;
+    ALTER TABLE focus_logs ENABLE ROW LEVEL SECURITY;
+
+    -- Create policies for anonymous access
+    CREATE POLICY "Allow anonymous insert" ON sessions FOR INSERT TO anon WITH CHECK (true);
+    CREATE POLICY "Allow anonymous select" ON sessions FOR SELECT TO anon USING (true);
+    CREATE POLICY "Allow anonymous update" ON sessions FOR UPDATE TO anon USING (true);
+    CREATE POLICY "Allow anonymous delete" ON sessions FOR DELETE TO anon USING (true);
+
+    CREATE POLICY "Allow anonymous insert" ON subtasks FOR INSERT TO anon WITH CHECK (true);
+    CREATE POLICY "Allow anonymous select" ON subtasks FOR SELECT TO anon USING (true);
+    CREATE POLICY "Allow anonymous update" ON subtasks FOR UPDATE TO anon USING (true);
+    CREATE POLICY "Allow anonymous delete" ON subtasks FOR DELETE TO anon USING (true);
+
+    CREATE POLICY "Allow anonymous insert" ON focus_logs FOR INSERT TO anon WITH CHECK (true);
+    CREATE POLICY "Allow anonymous select" ON focus_logs FOR SELECT TO anon USING (true);
+    CREATE POLICY "Allow anonymous update" ON focus_logs FOR UPDATE TO anon USING (true);
+    CREATE POLICY "Allow anonymous delete" ON focus_logs FOR DELETE TO anon USING (true);
+
+    -- Create indexes for performance
+    CREATE INDEX IF NOT EXISTS sessions_user_id_idx ON sessions(user_id);
+    CREATE INDEX IF NOT EXISTS subtasks_session_id_idx ON subtasks(session_id);
+    CREATE INDEX IF NOT EXISTS focus_logs_user_id_idx ON focus_logs(user_id);
+    -->
+
+    <!-- Global Functions -->
+    <script>
+        window.switchTab = function(id) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            targetTab.classList.add('active');
-            
+            document.getElementById(`tab-${id}`)?.classList.add('active');
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-            const btn = document.querySelector(`.nav-link[data-tab="${id}"]`);
-            if (btn) btn.classList.add('active');
-            
-            const titleEl = document.getElementById('header-title');
-            if (titleEl) titleEl.innerText = id.charAt(0).toUpperCase() + id.slice(1);
-            
-            // Dispatch custom event for modules to react
+            document.querySelector(`.nav-link[data-tab="${id}"]`)?.classList.add('active');
+            document.getElementById('header-title').innerText = id.charAt(0).toUpperCase() + id.slice(1);
             window.dispatchEvent(new CustomEvent('tabChanged', { detail: { id } }));
-            
-            if (typeof lucide !== 'undefined') lucide.createIcons();
+            lucide.createIcons();
         };
 
-        // Modal controls
         window.openModal = function(id) {
-            const overlay = document.getElementById('modal-overlay');
-            const modal = document.getElementById(id);
-            if (overlay && modal) {
-                overlay.classList.remove('hidden');
-                document.querySelectorAll('.modal-window').forEach(m => m.classList.add('hidden'));
-                modal.classList.remove('hidden');
-            }
-            if (typeof lucide !== 'undefined') lucide.createIcons();
+            document.getElementById('modal-overlay')?.classList.remove('hidden');
+            document.querySelectorAll('.modal-window').forEach(m => m.classList.add('hidden'));
+            document.getElementById(id)?.classList.remove('hidden');
+            lucide.createIcons();
         };
 
         window.closeModal = function() {
-            const overlay = document.getElementById('modal-overlay');
-            if (overlay) overlay.classList.add('hidden');
+            document.getElementById('modal-overlay')?.classList.add('hidden');
         };
     </script>
 
@@ -360,145 +396,221 @@
         import timeGridPlugin from '@fullcalendar/timegrid';
         import listPlugin from '@fullcalendar/list';
         
+        // =============================================
+        // SUPABASE CONFIGURATION - REPLACE WITH YOUR CREDENTIALS
+        // =============================================
         const SUPABASE_URL = "https://lkxhfkvptlzbsccdouzd.supabase.co";
-        const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxreGhma3ZwdGx6YnNjY2RvdXpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTA1MjQsImV4cCI6MjA4NjQ4NjUyNH0.kiXW5U5cu0-JkK0ewx2hWLMeG9h5co1xH5_5Tn3VLBU";
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxreGhma3ZwdGx6YnNjY2RvdXpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTA1MjQsImV4cCI6MjA4NjQ4NjUyNH0.kiXW5U5cu0-JkK0ewx2hWLMeG9h5co1xH5_5Tn3VLBU";
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+        // =============================================
+        // GLOBAL STATE
+        // =============================================
         let user = null;
-        let localDb = {
-            subjects: [{id: 's1', name: 'Combined Maths', color: 'indigo'}, {id: 's2', name: 'Chemistry', color: 'rose'}, {id: 's3', name: 'Physics', color: 'emerald'}],
-            sessions: [],
-            subtasks: [], 
-            focusLogs: []  
-        };
-        let focusChart = null;
         let calendar = null;
-        let timeLeft = 1500;
+        let focusChart = null;
+        let timerInterval = null;
+        let timeLeft = 1500; // 25 minutes
         let timerRunning = false;
-        let timerInterval;
         let activeSessionId = null;
 
-        // Exposed functions that need access to module variables
-        window.toggleTimer = function() {
-            const btn = document.getElementById('timer-btn');
-            if (timerRunning) {
-                clearInterval(timerInterval);
-                timerRunning = false;
-                if(btn) btn.innerText = 'Resume Session';
-            } else {
-                timerRunning = true;
-                if(btn) btn.innerText = 'Pause Session';
-                timerInterval = setInterval(() => {
-                    timeLeft--;
-                    updateTimerUI();
-                    if (timeLeft <= 0) completeSession();
-                }, 1000);
+        // =============================================
+        // DATABASE OPERATIONS
+        // =============================================
+        async function initializeAuth() {
+            try {
+                // Try to get existing session
+                const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+                
+                if (sessionError) throw sessionError;
+                
+                if (!session) {
+                    // Sign in anonymously if no session exists
+                    const { data, error: signInError } = await supabase.auth.signInAnonymously();
+                    if (signInError) throw signInError;
+                    user = data.user;
+                    document.getElementById('sync-status').innerText = 'Connected (Anonymous)';
+                } else {
+                    user = session.user;
+                    document.getElementById('sync-status').innerText = 'Connected';
+                }
+                
+                document.getElementById('auth-status').innerText = `User: ${user.id.slice(0, 8)}...`;
+                return true;
+            } catch (error) {
+                console.error('Auth error:', error);
+                document.getElementById('sync-status').innerText = 'Connection failed';
+                document.getElementById('auth-status').innerText = 'Using local mode';
+                
+                // Fallback to local-only mode with mock user
+                user = { id: 'local-' + Date.now() };
+                return false;
             }
-        };
+        }
 
-        window.openSubtaskModal = function(id) {
-            activeSessionId = id;
-            window.openModal('modal-subtask');
-        };
-
-        window.saveSubtask = async function() {
-            const input = document.getElementById('subtask-input');
-            const title = input.value;
-            if (!title || !user) return;
-            await supabaseClient.from('subtasks').insert([{
-                user_id: user.id,
-                session_id: activeSessionId,
-                title,
-                completed: false
-            }]);
-            input.value = '';
-            window.closeModal();
-            loadInitialData();
-        };
-
-        window.toggleSubtask = async function(id, currentStatus) {
+        async function loadData() {
             if (!user) return;
-            await supabaseClient.from('subtasks')
-                .update({ completed: !currentStatus })
-                .eq('id', id);
-            loadInitialData();
-        };
-
-        function updateTimerUI() {
-            const mins = Math.floor(timeLeft / 60);
-            const secs = timeLeft % 60;
-            const display = document.getElementById('timer-display');
-            if(display) display.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
-            const offset = 942.48 - (timeLeft / 1500) * 942.48;
-            const ring = document.getElementById('timer-progress');
-            if (ring) ring.style.strokeDashoffset = offset;
-        }
-
-        async function completeSession() {
-            clearInterval(timerInterval);
-            const type = document.getElementById('focus-type').value;
-            const log = { 
-                user_id: user.id,
-                type, 
-                duration: 1500, 
-                date: new Date().toISOString().split('T')[0] 
-            };
-            await supabaseClient.from('focus_logs').insert([log]);
-            timeLeft = 1500;
-            timerRunning = false;
-            updateTimerUI();
-            loadInitialData();
-        }
-
-        async function handleForm(e, category) {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const session = Object.fromEntries(formData.entries());
-            session.category = category;
-            session.user_id = user.id;
-            if (category === 'hw' && !session.date) session.date = session.deadline;
             
-            await supabaseClient.from('sessions').insert([session]);
-            window.closeModal();
-            e.target.reset();
-            loadInitialData();
+            try {
+                const [sessionsRes, subtasksRes, focusLogsRes] = await Promise.all([
+                    supabase.from('sessions').select('*').eq('user_id', user.id),
+                    supabase.from('subtasks').select('*').eq('user_id', user.id),
+                    supabase.from('focus_logs').select('*').eq('user_id', user.id)
+                ]);
+
+                if (!sessionsRes.error) window.localDb = window.localDb || {};
+                window.localDb.sessions = sessionsRes.error ? [] : sessionsRes.data;
+                window.localDb.subtasks = subtasksRes.error ? [] : subtasksRes.data;
+                window.localDb.focusLogs = focusLogsRes.error ? [] : focusLogsRes.data;
+
+                renderAll();
+                updateStats();
+                renderChart();
+                initCalendar();
+            } catch (error) {
+                console.error('Load error:', error);
+            }
         }
 
-        function renderManager() {
-            const hwList = document.getElementById('main-hw-list');
-            const examList = document.getElementById('main-exam-list');
-            const classList = document.getElementById('main-class-list');
-            const pendingList = document.getElementById('quick-pending-list');
+        async function createSession(e, category) {
+            e.preventDefault();
+            if (!user) return;
+            
+            const formData = new FormData(e.target);
+            const session = {
+                user_id: user.id,
+                title: formData.get('title'),
+                subject: formData.get('subject'),
+                category: category,
+                start_time: formData.get('start_time') || null,
+                end_time: formData.get('end_time') || null,
+                repeat: 'none'
+            };
 
-            const sessions = localDb.sessions;
-            const subs = localDb.subtasks;
+            // Set date based on category
+            if (category === 'hw') {
+                session.deadline = formData.get('deadline');
+            } else {
+                session.date = formData.get('date') || formData.get('deadline');
+            }
 
+            try {
+                const { error } = await supabase.from('sessions').insert([session]);
+                if (error) throw error;
+                closeModal();
+                e.target.reset();
+                loadData();
+            } catch (error) {
+                console.error('Insert error:', error);
+                alert('Failed to save. Please try again.');
+            }
+        }
+
+        async function createSubtask() {
+            if (!user || !activeSessionId) return;
+            
+            const input = document.getElementById('subtask-input');
+            const title = input.value.trim();
+            if (!title) return;
+
+            try {
+                const { error } = await supabase.from('subtasks').insert([{
+                    user_id: user.id,
+                    session_id: activeSessionId,
+                    title: title,
+                    completed: false
+                }]);
+                
+                if (error) throw error;
+                
+                input.value = '';
+                closeModal();
+                loadData();
+            } catch (error) {
+                console.error('Subtask error:', error);
+                alert('Failed to add subtask.');
+            }
+        }
+
+        async function toggleSubtask(id, currentStatus) {
+            if (!user) return;
+            
+            try {
+                const { error } = await supabase
+                    .from('subtasks')
+                    .update({ completed: !currentStatus })
+                    .eq('id', id);
+                
+                if (error) throw error;
+                loadData();
+            } catch (error) {
+                console.error('Toggle error:', error);
+            }
+        }
+
+        async function saveFocusLog(duration, type) {
+            if (!user) return;
+            
+            try {
+                await supabase.from('focus_logs').insert([{
+                    user_id: user.id,
+                    type: type,
+                    duration: duration,
+                    date: new Date().toISOString().split('T')[0]
+                }]);
+                loadData();
+            } catch (error) {
+                console.error('Focus log error:', error);
+            }
+        }
+
+        // =============================================
+        // UI RENDERING
+        // =============================================
+        function renderAll() {
+            renderSessions();
+            renderSubjects();
+            lucide.createIcons();
+        }
+
+        function renderSessions() {
+            const db = window.localDb || { sessions: [], subtasks: [] };
+            const sessions = db.sessions || [];
+            const subtasks = db.subtasks || [];
+
+            // Filter by category
+            const hwSessions = sessions.filter(s => s.category === 'hw');
+            const examSessions = sessions.filter(s => s.category === 'exam');
+            const classSessions = sessions.filter(s => s.category === 'class');
+
+            // Render function for cards
             const renderCard = (s) => {
-                const sessionSubs = subs.filter(sub => sub.session_id === s.id);
-                const done = sessionSubs.filter(sub => sub.completed).length;
+                const sessionSubs = subtasks.filter(sub => sub.session_id === s.id);
+                const completed = sessionSubs.filter(sub => sub.completed).length;
                 const total = sessionSubs.length;
-                const progress = total === 0 ? 0 : (done / total) * 100;
-                const subColor = localDb.subjects.find(sub => sub.id === s.subject_id)?.color || 'slate';
+                const progress = total === 0 ? 0 : (completed / total) * 100;
+                const dateStr = s.deadline || s.date || 'No date';
 
                 return `
-                    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-100 shadow-sm">
                         <div class="flex justify-between items-start">
-                            <div class="flex-1">
-                                <h5 class="font-black text-slate-800 text-sm">${s.title}</h5>
-                                <p class="text-[10px] font-bold text-${subColor}-500 uppercase">${s.deadline || s.date || ''}</p>
+                            <div>
+                                <h5 class="font-black text-slate-800">${s.title}</h5>
+                                <p class="text-xs text-slate-500 mt-1">${dateStr}</p>
                             </div>
-                            <button onclick="window.openSubtaskModal('${s.id}')" class="p-2 bg-slate-50 rounded-xl hover:bg-indigo-600 hover:text-white transition-all">
+                            <button onclick="window.openSubtaskModal('${s.id}')" class="p-2 bg-slate-50 rounded-lg hover:bg-indigo-600 hover:text-white">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
                             </button>
                         </div>
-                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                            <div class="bg-indigo-600 h-full" style="width: ${progress}%"></div>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full mt-4">
+                            <div class="bg-indigo-600 h-full rounded-full" style="width: ${progress}%"></div>
                         </div>
-                        <div class="space-y-2 max-h-32 overflow-y-auto">
+                        <div class="mt-3 space-y-1">
                             ${sessionSubs.map(sub => `
-                                <div onclick="window.toggleSubtask('${sub.id}', ${sub.completed})" class="flex items-center gap-3 cursor-pointer">
-                                    <div class="w-3.5 h-3.5 rounded border ${sub.completed ? 'bg-indigo-600 border-indigo-600' : 'border-slate-200'}"></div>
-                                    <span class="text-[11px] font-medium ${sub.completed ? 'text-slate-300 line-through' : 'text-slate-600'}">${sub.title}</span>
+                                <div onclick="window.toggleSubtask('${sub.id}', ${sub.completed})" class="flex items-center gap-2 cursor-pointer">
+                                    <div class="w-3.5 h-3.5 rounded border ${sub.completed ? 'bg-indigo-600 border-indigo-600' : 'border-slate-300'}"></div>
+                                    <span class="text-xs ${sub.completed ? 'line-through text-slate-400' : 'text-slate-700'}">${sub.title}</span>
                                 </div>
                             `).join('')}
                         </div>
@@ -506,46 +618,51 @@
                 `;
             };
 
-            if(hwList) hwList.innerHTML = sessions.filter(s => s.category === 'hw').map(renderCard).join('');
-            if(examList) examList.innerHTML = sessions.filter(s => s.category === 'exam').map(renderCard).join('');
-            if(classList) classList.innerHTML = sessions.filter(s => s.category === 'class').map(renderCard).join('');
+            // Update UI
+            document.getElementById('main-hw-list').innerHTML = hwSessions.map(renderCard).join('');
+            document.getElementById('main-exam-list').innerHTML = examSessions.map(renderCard).join('');
+            document.getElementById('main-class-list').innerHTML = classSessions.map(renderCard).join('');
+            
+            // Academic lists
+            document.getElementById('academic-hw-list').innerHTML = '<h4 class="text-sm font-black text-slate-400">Homework</h4>' + hwSessions.map(renderCard).join('');
+            document.getElementById('academic-exam-list').innerHTML = '<h4 class="text-sm font-black text-slate-400">Exams</h4>' + examSessions.map(renderCard).join('');
+            document.getElementById('academic-class-list').innerHTML = '<h4 class="text-sm font-black text-slate-400">Classes</h4>' + classSessions.map(renderCard).join('');
 
-            if(pendingList) {
-                pendingList.innerHTML = subs.filter(sub => !sub.completed).slice(0, 5).map(sub => `
-                    <div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
-                        <div class="w-2 h-2 rounded-full bg-rose-500"></div>
-                        <span class="text-xs font-bold text-slate-700">${sub.title}</span>
-                    </div>
-                `).join('');
-            }
-            if(typeof lucide !== 'undefined') lucide.createIcons();
+            // Pending subtasks
+            const pending = subtasks.filter(sub => !sub.completed).slice(0, 5);
+            document.getElementById('quick-pending-list').innerHTML = pending.map(sub => `
+                <div class="bg-white p-4 rounded-2xl border border-slate-100">
+                    <span class="text-xs font-bold text-slate-700">${sub.title}</span>
+                </div>
+            `).join('');
+        }
+
+        function renderSubjects() {
+            const subjects = ['Maths', 'Chemistry', 'Physics'];
+            const html = subjects.map(s => `<option value="${s}">${s}</option>`).join('');
+            document.querySelectorAll('select[name="subject"]').forEach(sel => sel.innerHTML = html);
         }
 
         function renderChart() {
-            const canvasEl = document.getElementById('focusChart');
-            if (!canvasEl) return;
-            const ctx = canvasEl.getContext('2d');
+            const ctx = document.getElementById('focusChart')?.getContext('2d');
+            if (!ctx) return;
             
-            const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            const data = [120, 90, 180, 45, 150, 200, 140]; // Placeholder or logic based on localDb.focusLogs
-
             if (focusChart) focusChart.destroy();
+            
             focusChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: labels,
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
                     datasets: [{
-                        label: 'Minutes',
-                        data: data,
+                        data: [65, 59, 80, 81, 56, 55, 40],
                         backgroundColor: '#4f46e5',
-                        borderRadius: 8,
-                        barThickness: 12
+                        borderRadius: 8
                     }]
                 },
                 options: {
+                    responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { display: false }, x: { grid: { display: false } } }
+                    plugins: { legend: { display: false } }
                 }
             });
         }
@@ -554,73 +671,131 @@
             const el = document.getElementById('calendar-container');
             if (!el) return;
             
-            const events = localDb.sessions.filter(s => s.date || s.deadline).map(s => ({
-                id: s.id,
-                title: s.title,
-                start: (s.date || s.deadline) + 'T' + (s.start_time || '00:00') + ':00',
-                end: s.end_time ? (s.date || s.deadline) + 'T' + s.end_time + ':00' : null,
-                backgroundColor: s.category === 'exam' ? '#f43f5e' : (s.category === 'class' ? '#10b981' : '#f59e0b')
-            }));
+            const sessions = (window.localDb?.sessions || []).filter(s => s.date || s.deadline);
+            
+            const events = sessions.map(s => {
+                const dateStr = s.date || s.deadline;
+                let color = '#f59e0b'; // amber
+                if (s.category === 'exam') color = '#f43f5e'; // rose
+                if (s.category === 'class') color = '#10b981'; // emerald
+                
+                return {
+                    id: s.id,
+                    title: s.title,
+                    start: dateStr + 'T' + (s.start_time || '00:00') + ':00',
+                    end: s.end_time ? dateStr + 'T' + s.end_time + ':00' : null,
+                    backgroundColor: color,
+                    borderColor: color
+                };
+            });
 
             if (calendar) calendar.destroy();
+            
             calendar = new Calendar(el, {
                 plugins: [dayGridPlugin, timeGridPlugin, listPlugin],
                 initialView: 'timeGridWeek',
-                headerToolbar: { left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,listWeek' },
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+                },
                 events: events,
                 height: '100%',
-                nowIndicator: true
+                slotMinTime: '07:00:00',
+                slotMaxTime: '22:00:00'
             });
+            
             calendar.render();
         }
 
-        async function loadInitialData() {
-            const [sRes, stRes, lRes] = await Promise.all([
-                supabaseClient.from('sessions').select('*'),
-                supabaseClient.from('subtasks').select('*'),
-                supabaseClient.from('focus_logs').select('*')
-            ]);
+        function updateStats() {
+            const logs = window.localDb?.focusLogs || [];
+            const totalMinutes = logs.reduce((acc, log) => acc + (log.duration || 0), 0);
             
-            if (!sRes.error) localDb.sessions = sRes.data;
-            if (!stRes.error) localDb.subtasks = stRes.data;
-            if (!lRes.error) localDb.focusLogs = lRes.data;
-
-            renderManager();
-            renderChart();
-            initCalendar();
-            
-            // Subjects select populate
-            const html = localDb.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-            document.querySelectorAll('.subject-select').forEach(sel => sel.innerHTML = html);
+            document.getElementById('dash-day-time').innerText = '0h 00m';
+            document.getElementById('dash-week-time').innerText = `${Math.floor(totalMinutes / 60)}h ${totalMinutes % 60}m`;
+            document.getElementById('total-study-time').innerText = `${Math.floor(totalMinutes / 60)}h`;
         }
 
+        // =============================================
+        // TIMER FUNCTIONS
+        // =============================================
+        function updateTimerUI() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            document.getElementById('timer-display').innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+            const offset = 942.48 - (timeLeft / 1500) * 942.48;
+            document.getElementById('timer-progress')?.style.setProperty('stroke-dashoffset', offset);
+        }
+
+        async function completeSession() {
+            clearInterval(timerInterval);
+            const type = document.getElementById('focus-type').value;
+            await saveFocusLog(1500, type);
+            timeLeft = 1500;
+            timerRunning = false;
+            updateTimerUI();
+            document.getElementById('timer-btn').innerText = 'Start Session';
+        }
+
+        // =============================================
+        // EXPOSE GLOBAL FUNCTIONS
+        // =============================================
+        window.toggleTimer = function() {
+            if (timerRunning) {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                document.getElementById('timer-btn').innerText = 'Resume';
+            } else {
+                timerRunning = true;
+                document.getElementById('timer-btn').innerText = 'Pause';
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerUI();
+                    if (timeLeft <= 0) completeSession();
+                }, 1000);
+            }
+        };
+
+        window.openSubtaskModal = function(sessionId) {
+            activeSessionId = sessionId;
+            openModal('modal-subtask');
+        };
+
+        window.saveSubtask = createSubtask;
+        window.toggleSubtask = toggleSubtask;
+
+        // =============================================
+        // EVENT LISTENERS & INIT
+        // =============================================
         window.addEventListener('tabChanged', (e) => {
-            if (e.detail.id === 'calendar') setTimeout(() => calendar && calendar.render(), 100);
+            if (e.detail.id === 'calendar') setTimeout(() => calendar?.render(), 100);
             if (e.detail.id === 'dashboard') setTimeout(renderChart, 100);
         });
 
-        async function init() {
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            user = session ? session.user : (await supabaseClient.auth.signInAnonymously()).data.user;
-            if (user) {
-                document.getElementById('sync-status').innerText = 'Cloud Active';
-                loadInitialData();
-            }
-        }
+        // Form handlers
+        document.getElementById('hw-form')?.addEventListener('submit', (e) => createSession(e, 'hw'));
+        document.getElementById('exam-form')?.addEventListener('submit', (e) => createSession(e, 'exam'));
+        document.getElementById('class-form')?.addEventListener('submit', (e) => createSession(e, 'class'));
 
-        document.getElementById('hw-form')?.addEventListener('submit', (e) => handleForm(e, 'hw'));
-        document.getElementById('exam-form')?.addEventListener('submit', (e) => handleForm(e, 'exam'));
-        document.getElementById('class-form')?.addEventListener('submit', (e) => handleForm(e, 'class'));
-
+        // Clock
         setInterval(() => {
             const now = new Date();
-            const timeEl = document.getElementById('current-time');
-            const dateEl = document.getElementById('current-date');
-            if (timeEl) timeEl.innerText = now.toLocaleTimeString();
-            if (dateEl) dateEl.innerText = now.toDateString();
+            document.getElementById('current-time').innerText = now.toLocaleTimeString();
+            document.getElementById('current-date').innerText = now.toDateString();
         }, 1000);
 
-        init();
+        // Initialize local DB
+        window.localDb = { sessions: [], subtasks: [], focusLogs: [] };
+
+        // Start app
+        initializeAuth().then(() => {
+            if (user) loadData();
+        });
+
+        // Initial render
+        renderSubjects();
+        lucide.createIcons();
     </script>
 </body>
 </html>

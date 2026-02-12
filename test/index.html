@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyStudyLife Clone</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="auth-section">
+        <h1>Study Time Table Manager</h1>
+        <button id="sign-up">Sign Up</button>
+        <button id="sign-in">Sign In</button>
+        <div id="auth-forms">
+            <!-- Forms will be injected here -->
+        </div>
+    </div>
+
+    <div id="app" style="display: none;">
+        <nav>
+            <button data-section="classes">Classes</button>
+            <button data-section="subjects">Subjects</button>
+            <button data-section="exams">Exams</button>
+            <button data-section="homeworks">Homeworks</button>
+            <button data-section="assignments">Assignments</button>
+            <button data-section="dashboard">Dashboard</button>
+            <button id="sign-out">Sign Out</button>
+        </nav>
+
+        <main id="main-content">
+            <!-- Sections will be loaded here -->
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

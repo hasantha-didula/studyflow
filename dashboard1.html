@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Plus Jakarta Sans', sans-serif; }
@@ -53,7 +54,7 @@
 
             <div class="p-6 border-t border-slate-100">
                 <div class="bg-indigo-50 rounded-2xl p-4">
-                    <p class="text-[10px] font-black text-indigo-400 uppercase">Cloud Sync</p>
+                    <p class="text-[10px] font-black text-indigo-400 uppercase">Supabase Cloud</p>
                     <p id="sync-status" class="text-xs font-bold text-indigo-600">Initializing...</p>
                 </div>
             </div>
@@ -182,7 +183,7 @@
             <form id="hw-form" class="space-y-4">
                 <input name="title" required placeholder="Session Title (e.g., Week 4 Problem Set)" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
                 <div class="grid grid-cols-2 gap-4">
-                    <select name="subjectId" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
+                    <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
                     <input name="deadline" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 </div>
                 <button type="submit" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Initialize Session</button>
@@ -204,7 +205,7 @@
             <form id="exam-form" class="space-y-4">
                 <input name="title" required placeholder="Exam Name (e.g., Mid-term Prep)" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
                 <div class="grid grid-cols-2 gap-4">
-                    <select name="subjectId" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
+                    <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
                     <input name="date" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 </div>
                 <div class="bg-slate-50 p-4 rounded-2xl">
@@ -220,17 +221,10 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getFirestore, collection, doc, onSnapshot, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-
-        // Firebase Setup
-        const firebaseConfig = JSON.parse(__firebase_config);
-        const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
-        const auth = getAuth(app);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'studyflow-pro';
+    <script>
+        // --- Supabase Config & Initialization ---
+        const config = JSON.parse(__supabase_config);
+        const supabase = supabase.createClient(config.url, config.key);
 
         let user = null;
         let localDb = {
@@ -242,40 +236,70 @@
 
         let focusChart = null;
 
-        // Auth & Sync
-        onAuthStateChanged(auth, (u) => {
-            if (u) {
-                user = u;
-                document.getElementById('sync-status').innerText = 'Connected & Synced';
-                startSync();
+        // --- Auth & Lifecycle ---
+        async function init() {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session) {
+                user = session.user;
+                document.getElementById('sync-status').innerText = 'Synced: ' + user.email;
+                startRealtime();
+                loadInitialData();
             } else {
-                signInAnonymously(auth);
+                // For demo/canvas, sign in anonymously or use credentials
+                const { data, error } = await supabase.auth.signInAnonymously();
+                if (data.user) {
+                    user = data.user;
+                    startRealtime();
+                    loadInitialData();
+                }
             }
-        });
-
-        function startSync() {
-            if (!user) return;
-            const sessionsPath = collection(db, 'artifacts', appId, 'users', user.uid, 'sessions');
-            onSnapshot(sessionsPath, (snap) => {
-                localDb.sessions = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                renderAll();
-            }, (err) => console.error("Session sync error:", err));
-
-            const subtasksPath = collection(db, 'artifacts', appId, 'users', user.uid, 'subtasks');
-            onSnapshot(subtasksPath, (snap) => {
-                localDb.subtasks = snap.docs.map(d => ({id: d.id, ...d.data()}));
-                renderAll();
-            }, (err) => console.error("Subtask sync error:", err));
-
-            const logsPath = collection(db, 'artifacts', appId, 'users', user.uid, 'focusLogs');
-            onSnapshot(logsPath, (snap) => {
-                localDb.focusLogs = snap.docs.map(d => d.data());
-                updateStats();
-                renderChart();
-            }, (err) => console.error("Logs sync error:", err));
         }
 
-        // Timer Logic
+        async function loadInitialData() {
+            const [sRes, stRes, lRes] = await Promise.all([
+                supabase.from('sessions').select('*'),
+                supabase.from('subtasks').select('*'),
+                supabase.from('focus_logs').select('*')
+            ]);
+            
+            if (!sRes.error) localDb.sessions = sRes.data;
+            if (!stRes.error) localDb.subtasks = stRes.data;
+            if (!lRes.error) localDb.focusLogs = lRes.data;
+
+            renderAll();
+            updateStats();
+            renderChart();
+        }
+
+        function startRealtime() {
+            supabase.channel('db-changes')
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' }, payload => {
+                    handlePayload('sessions', payload);
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'subtasks' }, payload => {
+                    handlePayload('subtasks', payload);
+                })
+                .on('postgres_changes', { event: '*', schema: 'public', table: 'focus_logs' }, payload => {
+                    handlePayload('focusLogs', payload);
+                })
+                .subscribe();
+        }
+
+        function handlePayload(key, payload) {
+            if (payload.eventType === 'INSERT') {
+                localDb[key].push(payload.new);
+            } else if (payload.eventType === 'UPDATE') {
+                const idx = localDb[key].findIndex(i => i.id === payload.new.id);
+                if (idx !== -1) localDb[key][idx] = payload.new;
+            } else if (payload.eventType === 'DELETE') {
+                localDb[key] = localDb[key].filter(i => i.id !== payload.old.id);
+            }
+            renderAll();
+            updateStats();
+            if (key === 'focusLogs') renderChart();
+        }
+
+        // --- Timer Logic ---
         let timeLeft = 1500;
         let timerRunning = false;
         let timerInterval;
@@ -308,24 +332,29 @@
             if (!user) return;
             clearInterval(timerInterval);
             const type = document.getElementById('focus-type').value;
-            const log = { type, duration: 1500, date: new Date().toISOString().split('T')[0] };
-            await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'focusLogs'), log);
+            const log = { 
+                user_id: user.id,
+                type, 
+                duration: 1500, 
+                date: new Date().toISOString().split('T')[0] 
+            };
+            await supabase.from('focus_logs').insert([log]);
             timeLeft = 1500;
             timerRunning = false;
             updateTimerUI();
-            alert('Session Complete! Focus logged.');
+            alert('Session Complete! Focus logged to Supabase.');
         }
 
-        // Manager Logic
+        // --- Manager Logic ---
         const handleMainSession = async (e, category) => {
             e.preventDefault();
             if (!user) return;
             const formData = new FormData(e.target);
             const session = Object.fromEntries(formData.entries());
             session.category = category;
-            session.createdAt = new Date().toISOString();
+            session.user_id = user.id;
             
-            await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'sessions'), session);
+            await supabase.from('sessions').insert([session]);
             closeModal();
             e.target.reset();
         };
@@ -343,22 +372,24 @@
             if (!user) return;
             const title = document.getElementById('subtask-input').value;
             if (!title) return;
-            await addDoc(collection(db, 'artifacts', appId, 'users', user.uid, 'subtasks'), {
-                sessionId: activeSessionId,
+            await supabase.from('subtasks').insert([{
+                user_id: user.id,
+                session_id: activeSessionId,
                 title,
                 completed: false
-            });
+            }]);
             document.getElementById('subtask-input').value = '';
             closeModal();
         };
 
-        window.toggleSubtask = async (id, status) => {
+        window.toggleSubtask = async (id, currentStatus) => {
             if (!user) return;
-            const ref = doc(db, 'artifacts', appId, 'users', user.uid, 'subtasks', id);
-            await updateDoc(ref, { completed: !status });
+            await supabase.from('subtasks')
+                .update({ completed: !currentStatus })
+                .eq('id', id);
         };
 
-        // Render Functions
+        // --- Render Functions ---
         function renderAll() {
             renderManager();
             renderSubjects();
@@ -376,18 +407,18 @@
             const subs = localDb.subtasks;
 
             const renderCard = (s) => {
-                const sessionSubs = subs.filter(sub => sub.sessionId === s.id);
+                const sessionSubs = subs.filter(sub => sub.session_id === s.id);
                 const done = sessionSubs.filter(sub => sub.completed).length;
                 const total = sessionSubs.length;
                 const progress = total === 0 ? 0 : (done / total) * 100;
-                const subColor = localDb.subjects.find(sub => sub.id === s.subjectId)?.color || 'slate';
+                const subColor = localDb.subjects.find(sub => sub.id === s.subject_id)?.color || 'slate';
 
                 return `
                     <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
                         <div class="flex justify-between items-start">
                             <div>
                                 <h5 class="font-black text-slate-800">${s.title}</h5>
-                                <p class="text-[10px] font-bold text-${subColor}-500 uppercase">${s.deadline || s.date}</p>
+                                <p class="text-[10px] font-bold text-${subColor}-500 uppercase">${s.deadline || s.date || 'No Date'}</p>
                             </div>
                             <button onclick="openSubtaskModal('${s.id}')" class="p-2 bg-slate-50 rounded-xl hover:bg-indigo-600 hover:text-white transition-all">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
@@ -479,7 +510,7 @@
             document.querySelectorAll('.subject-select').forEach(sel => sel.innerHTML = html);
         }
 
-        // Standard helpers
+        // --- Standard UI Helpers ---
         window.switchTab = (id) => {
             const targetTab = document.getElementById(`tab-${id}`);
             if (!targetTab) return;
@@ -522,6 +553,9 @@
             if (timeEl) timeEl.innerText = now.toLocaleTimeString();
             if (dateEl) dateEl.innerText = now.toDateString();
         }, 1000);
+
+        // Start App
+        window.onload = init;
 
     </script>
 </body>

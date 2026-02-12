@@ -55,9 +55,6 @@
                 <button onclick="switchTab('academic')" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
                     <i data-lucide="book-open" class="w-5 h-5"></i> Academic Hub
                 </button>
-                <button onclick="switchTab('analytics')" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
-                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i> Analytics
-                </button>
             </nav>
 
             <div class="p-6 border-t border-slate-100">
@@ -88,24 +85,24 @@
                             <h4 class="text-4xl font-black mt-2" id="dash-day-time">0h 00m</h4>
                         </div>
                         <div class="bg-white p-8 rounded-[2rem] border border-slate-200">
-                            <p class="text-[10px] font-black uppercase text-slate-400">Week Target</p>
-                            <h4 class="text-4xl font-black mt-2 text-slate-800" id="dash-week-time">0h 00m</h4>
+                            <p class="text-[10px] font-black uppercase text-slate-400">Total Tasks</p>
+                            <h4 class="text-4xl font-black mt-2 text-slate-800" id="dash-total-tasks">0</h4>
                         </div>
                         <div class="bg-white p-8 rounded-[2rem] border border-slate-200">
-                            <p class="text-[10px] font-black uppercase text-slate-400">Total Month</p>
-                            <h4 class="text-4xl font-black mt-2 text-slate-800" id="dash-month-time">0h 00m</h4>
+                            <p class="text-[10px] font-black uppercase text-slate-400">Total Focus</p>
+                            <h4 class="text-4xl font-black mt-2 text-slate-800" id="dash-total-focus">0h</h4>
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                         <div class="lg:col-span-2 space-y-6">
-                            <h3 class="text-lg font-black flex items-center gap-2">Weekly Focus Trend</h3>
+                            <h3 class="text-lg font-black flex items-center gap-2">Weekly Trend</h3>
                             <div class="bg-white p-6 rounded-[2rem] border border-slate-200 h-64">
                                 <canvas id="focusChart"></canvas>
                             </div>
                         </div>
                         <div class="space-y-6">
-                            <h3 class="text-lg font-black text-rose-600">Pending Sub-tasks</h3>
+                            <h3 class="text-lg font-black text-rose-600">Pending Topics</h3>
                             <div id="quick-pending-list" class="space-y-3"></div>
                         </div>
                     </div>
@@ -149,19 +146,19 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div class="space-y-4">
                             <h4 class="text-sm font-black text-slate-400 uppercase flex items-center gap-2">
-                                <i data-lucide="graduation-cap" class="w-4 h-4"></i> Class Sessions
+                                <i data-lucide="graduation-cap" class="w-4 h-4"></i> Classes
                             </h4>
                             <div id="main-class-list" class="space-y-4"></div>
                         </div>
                         <div class="space-y-4">
                             <h4 class="text-sm font-black text-slate-400 uppercase flex items-center gap-2">
-                                <i data-lucide="book" class="w-4 h-4"></i> Homework Sessions
+                                <i data-lucide="book" class="w-4 h-4"></i> Homework
                             </h4>
                             <div id="main-hw-list" class="space-y-4"></div>
                         </div>
                         <div class="space-y-4">
                             <h4 class="text-sm font-black text-slate-400 uppercase flex items-center gap-2">
-                                <i data-lucide="award" class="w-4 h-4"></i> Exam Prep
+                                <i data-lucide="award" class="w-4 h-4"></i> Exams
                             </h4>
                             <div id="main-exam-list" class="space-y-4"></div>
                         </div>
@@ -173,7 +170,7 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div class="space-y-1">
                             <h3 class="text-3xl font-black" id="calendar-view-title">Month Year</h3>
-                            <p class="text-xs font-bold text-slate-400 uppercase" id="calendar-subtitle">Academic Timeline</p>
+                            <p class="text-xs font-bold text-slate-400 uppercase">Academic Timeline</p>
                         </div>
                         <div class="flex items-center gap-6">
                             <div class="bg-white p-1 rounded-xl border border-slate-200 flex shadow-sm">
@@ -192,19 +189,19 @@
 
                 <!-- ACADEMIC HUB TAB -->
                 <div id="tab-academic" class="tab-content space-y-8">
-                    <h3 class="text-3xl font-black">Academic Hub</h3>
+                    <h3 class="text-3xl font-black">Academic Summary</h3>
                     <div class="bg-white p-8 rounded-[2rem] border border-slate-200">
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div id="academic-summary-list" class="grid grid-cols-1 md:grid-cols-3 gap-8">
                             <div class="space-y-4">
-                                <h4 class="text-sm font-black text-slate-400 uppercase">Classes</h4>
+                                <h4 class="text-sm font-black text-slate-400 uppercase">Class Log</h4>
                                 <div id="academic-class-list" class="space-y-4"></div>
                             </div>
                             <div class="space-y-4">
-                                <h4 class="text-sm font-black text-slate-400 uppercase">Homework</h4>
+                                <h4 class="text-sm font-black text-slate-400 uppercase">Assignment Log</h4>
                                 <div id="academic-hw-list" class="space-y-4"></div>
                             </div>
                             <div class="space-y-4">
-                                <h4 class="text-sm font-black text-slate-400 uppercase">Exams</h4>
+                                <h4 class="text-sm font-black text-slate-400 uppercase">Exam Log</h4>
                                 <div id="academic-exam-list" class="space-y-4"></div>
                             </div>
                         </div>
@@ -221,36 +218,28 @@
         <!-- Class Session Modal -->
         <div id="modal-main-class" class="modal-window hidden bg-white rounded-3xl w-full max-w-lg p-8 relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
-            <h3 class="text-2xl font-black mb-6">Create Class Session</h3>
+            <h3 class="text-2xl font-black mb-6">Create Class</h3>
             <form id="class-form" class="space-y-4">
-                <input name="title" required placeholder="Class Name (e.g., Calculus II Lecture)" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
+                <input name="title" required placeholder="Class Name" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
                 <div class="grid grid-cols-2 gap-4">
                     <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
                     <input name="date" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 </div>
-                <div class="bg-slate-50 p-4 rounded-2xl">
-                    <label class="text-[10px] font-black text-slate-400 uppercase">Schedule Frequency</label>
-                    <select name="repeat" class="w-full bg-transparent outline-none font-bold">
-                        <option value="none">One-time</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="biweekly">Bi-weekly</option>
-                    </select>
-                </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black">Register Class</button>
+                <button type="submit" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black">Add Class</button>
             </form>
         </div>
 
         <!-- HW Session Modal -->
         <div id="modal-main-hw" class="modal-window hidden bg-white rounded-3xl w-full max-w-lg p-8 relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
-            <h3 class="text-2xl font-black mb-6">Create HW Session</h3>
+            <h3 class="text-2xl font-black mb-6">Create HW</h3>
             <form id="hw-form" class="space-y-4">
-                <input name="title" required placeholder="Assignment Title" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
+                <input name="title" required placeholder="Homework Title" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
                 <div class="grid grid-cols-2 gap-4">
                     <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
                     <input name="deadline" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 </div>
-                <button type="submit" class="w-full bg-amber-600 text-white py-4 rounded-2xl font-black">Add Assignment</button>
+                <button type="submit" class="w-full bg-amber-600 text-white py-4 rounded-2xl font-black">Add Homework</button>
             </form>
         </div>
 
@@ -259,21 +248,21 @@
             <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
             <h3 class="text-2xl font-black mb-6">Create Exam Prep</h3>
             <form id="exam-form" class="space-y-4">
-                <input name="title" required placeholder="Exam Title" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
+                <input name="title" required placeholder="Exam Name" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
                 <div class="grid grid-cols-2 gap-4">
                     <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
                     <input name="date" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 </div>
-                <button type="submit" class="w-full bg-rose-600 text-white py-4 rounded-2xl font-black">Schedule Exam</button>
+                <button type="submit" class="w-full bg-rose-600 text-white py-4 rounded-2xl font-black">Add Exam</button>
             </form>
         </div>
 
         <!-- Sub Task Modal -->
         <div id="modal-subtask" class="modal-window hidden bg-white rounded-3xl w-full max-w-sm p-8 relative">
              <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
-            <h3 class="text-xl font-black mb-4">Add Task</h3>
-            <input id="subtask-input" placeholder="Topic to cover..." class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none mb-4">
-            <button onclick="saveSubtask()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold">Add to Session</button>
+            <h3 class="text-xl font-black mb-4">Add Task Item</h3>
+            <input id="subtask-input" placeholder="What needs to be done?" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none mb-4">
+            <button onclick="saveSubtask()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold">Add Task</button>
         </div>
     </div>
 
@@ -332,10 +321,10 @@
             if (timerRunning) {
                 clearInterval(timerInterval);
                 timerRunning = false;
-                document.getElementById('timer-btn').innerText = 'Resume Session';
+                document.getElementById('timer-btn').innerText = 'Resume';
             } else {
                 timerRunning = true;
-                document.getElementById('timer-btn').innerText = 'Pause Session';
+                document.getElementById('timer-btn').innerText = 'Pause';
                 timerInterval = setInterval(() => {
                     timeLeft--;
                     updateTimerUI();
@@ -363,7 +352,7 @@
             updateTimerUI(); updateStats(); renderChart();
         }
 
-        // --- Session Handlers ---
+        // --- Session Handlers (FIXED: No Double Entry) ---
         const handleSessionSubmit = async (e, category) => {
             e.preventDefault();
             const formData = new FormData(e.target);
@@ -372,8 +361,18 @@
             session.user_id = user?.id || 'guest';
             session.id = crypto.randomUUID();
             
-            if (supabaseClient && user) await supabaseClient.from('sessions').insert([session]);
-            localDb.sessions.push(session);
+            // Only push to localDb if we are NOT in live sync mode or if insertion is guaranteed
+            if (supabaseClient && user) {
+                const { data, error } = await supabaseClient.from('sessions').insert([session]).select();
+                if (!error && data) {
+                    // Update local store with the actual returned data to prevent duplicates if real-time listener is also active
+                    const existing = localDb.sessions.find(s => s.id === session.id);
+                    if (!existing) localDb.sessions.push(data[0]);
+                }
+            } else {
+                localDb.sessions.push(session);
+            }
+            
             renderAll();
             closeModal();
             e.target.reset();
@@ -438,17 +437,7 @@
             for (let i = 1; i <= lastDate; i++) {
                 const date = new Date(year, month, i).toISOString().split('T')[0];
                 const sessions = localDb.sessions.filter(s => (s.date || s.deadline) === date);
-                html += `
-                    <div class="calendar-day p-3 border-r border-b border-slate-100 relative ${date === todayStr ? 'bg-indigo-50/20' : ''}">
-                        <span class="text-xs font-black ${date === todayStr ? 'text-indigo-600' : 'text-slate-500'}">${i}</span>
-                        <div class="mt-2 space-y-1">
-                            ${sessions.map(s => `
-                                <div class="text-[7px] font-black px-1 py-0.5 rounded uppercase truncate ${s.category === 'class' ? 'bg-indigo-100 text-indigo-700' : s.category === 'hw' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}">
-                                    ${s.title}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>`;
+                html += `<div class="calendar-day p-3 border-r border-b border-slate-100 ${date === todayStr ? 'bg-indigo-50/20' : ''}"><span class="text-xs font-black ${date === todayStr ? 'text-indigo-600' : 'text-slate-500'}">${i}</span><div class="mt-2 space-y-1">${sessions.map(s => `<div class="text-[7px] font-black px-1 py-0.5 rounded truncate ${s.category === 'class' ? 'bg-indigo-100 text-indigo-700' : s.category === 'hw' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}">${s.title}</div>`).join('')}</div></div>`;
             }
             container.innerHTML = html + `</div>`;
         }
@@ -461,21 +450,7 @@
                 const d = new Date(start); d.setDate(start.getDate() + i);
                 const iso = d.toISOString().split('T')[0];
                 const sessions = localDb.sessions.filter(s => (s.date || s.deadline) === iso);
-                html += `
-                    <div class="${iso === todayStr ? 'bg-indigo-50/10' : ''}">
-                        <div class="p-6 border-b border-slate-100 text-center">
-                            <p class="text-[10px] font-black text-slate-400 uppercase">${d.toLocaleString('default', {weekday:'short'})}</p>
-                            <p class="text-xl font-black ${iso === todayStr ? 'text-indigo-600' : ''}">${d.getDate()}</p>
-                        </div>
-                        <div class="p-3 space-y-2">
-                            ${sessions.map(s => `
-                                <div class="p-2.5 rounded-xl border ${s.category === 'class' ? 'bg-indigo-50 border-indigo-100 text-indigo-800' : s.category === 'hw' ? 'bg-amber-50 border-amber-100 text-amber-800' : 'bg-rose-50 border-rose-100 text-rose-800'}">
-                                    <p class="text-[8px] font-black uppercase opacity-60">${s.category}</p>
-                                    <p class="text-[11px] font-bold leading-tight">${s.title}</p>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>`;
+                html += `<div class="${iso === todayStr ? 'bg-indigo-50/10' : ''}"><div class="p-6 border-b border-slate-100 text-center"><p class="text-[10px] font-black text-slate-400 uppercase">${d.toLocaleString('default', {weekday:'short'})}</p><p class="text-xl font-black ${iso === todayStr ? 'text-indigo-600' : ''}">${d.getDate()}</p></div><div class="p-3 space-y-2">${sessions.map(s => `<div class="p-2.5 rounded-xl border ${s.category === 'class' ? 'bg-indigo-50 border-indigo-100 text-indigo-800' : s.category === 'hw' ? 'bg-amber-50 border-amber-100 text-amber-800' : 'bg-rose-50 border-rose-100 text-rose-800'}"><p class="text-[8px] font-black uppercase opacity-60">${s.category}</p><p class="text-[11px] font-bold leading-tight">${s.title}</p></div>`).join('')}</div></div>`;
             }
             container.innerHTML = html + `</div>`;
         }
@@ -484,24 +459,7 @@
             const iso = currentCalDate.toISOString().split('T')[0];
             titleEl.innerText = currentCalDate.toLocaleDateString('default', { weekday: 'long', month: 'long', day: 'numeric' });
             const sessions = localDb.sessions.filter(s => (s.date || s.deadline) === iso);
-            container.innerHTML = `
-                <div class="p-10 flex justify-center min-h-[500px]">
-                    <div class="w-full max-w-xl space-y-4">
-                        ${sessions.length ? sessions.map(s => `
-                            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 flex items-center justify-between">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center ${s.category === 'class' ? 'bg-indigo-100 text-indigo-600' : s.category === 'hw' ? 'bg-amber-100 text-amber-600' : 'bg-rose-100 text-rose-600'}">
-                                        <i data-lucide="${s.category === 'class' ? 'graduation-cap' : s.category === 'hw' ? 'book' : 'award'}" class="w-6 h-6"></i>
-                                    </div>
-                                    <div>
-                                        <p class="text-[10px] font-black uppercase opacity-40">${s.category}</p>
-                                        <h5 class="text-lg font-black">${s.title}</h5>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('') : '<div class="text-center py-20 text-slate-400 font-bold">Free Day! No sessions.</div>'}
-                    </div>
-                </div>`;
+            container.innerHTML = `<div class="p-10 flex justify-center min-h-[500px]"><div class="w-full max-w-xl space-y-4">${sessions.length ? sessions.map(s => `<div class="bg-white p-6 rounded-[2rem] border border-slate-100 flex items-center justify-between"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-2xl flex items-center justify-center ${s.category === 'class' ? 'bg-indigo-100 text-indigo-600' : s.category === 'hw' ? 'bg-amber-100 text-amber-600' : 'bg-rose-100 text-rose-600'}"><i data-lucide="${s.category === 'class' ? 'graduation-cap' : s.category === 'hw' ? 'book' : 'award'}" class="w-6 h-6"></i></div><div><p class="text-[10px] font-black uppercase opacity-40">${s.category}</p><h5 class="text-lg font-black">${s.title}</h5></div></div></div>`).join('') : '<div class="text-center py-20 text-slate-400 font-bold">No sessions found.</div>'}</div></div>`;
         }
 
         // --- Manager UI ---
@@ -516,30 +474,7 @@
                     const done = sessionSubs.filter(sub => sub.completed).length;
                     const progress = sessionSubs.length ? (done / sessionSubs.length) * 100 : 0;
                     const color = localDb.subjects.find(sub => sub.id === s.subject_id)?.color || 'slate';
-                    return `
-                        <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
-                            <div class="flex justify-between items-start">
-                                <div class="flex-1">
-                                    <h5 class="font-black text-slate-800 leading-tight">${s.title}</h5>
-                                    <p class="text-[10px] font-bold text-${color}-500 uppercase mt-1">${s.date || s.deadline}</p>
-                                </div>
-                                <button onclick="openSubtaskModal('${s.id}')" class="p-2 bg-slate-50 rounded-xl hover:bg-indigo-600 hover:text-white transition-all">
-                                    <i data-lucide="plus" class="w-4 h-4"></i>
-                                </button>
-                            </div>
-                            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                                <div class="bg-indigo-600 h-full" style="width: ${progress}%"></div>
-                            </div>
-                            <div class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
-                                ${sessionSubs.map(sub => `
-                                    <div onclick="toggleSubtask('${sub.id}', ${sub.completed})" class="flex items-center gap-3 cursor-pointer">
-                                        <div class="w-4 h-4 rounded border-2 ${sub.completed ? 'bg-indigo-600 border-indigo-600' : 'border-slate-200'} flex items-center justify-center">
-                                            ${sub.completed ? '<i data-lucide="check" class="text-white w-3 h-3"></i>' : ''}
-                                        </div>
-                                        <span class="text-xs font-medium ${sub.completed ? 'text-slate-300 line-through' : 'text-slate-600'}">${sub.title}</span>
-                                    </div>`).join('')}
-                            </div>
-                        </div>`;
+                    return `<div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4"><div class="flex justify-between items-start"><div class="flex-1"><h5 class="font-black text-slate-800 leading-tight">${s.title}</h5><p class="text-[10px] font-bold text-${color}-500 uppercase mt-1">${s.date || s.deadline}</p></div><button onclick="openSubtaskModal('${s.id}')" class="p-2 bg-slate-50 rounded-xl hover:bg-indigo-600 hover:text-white transition-all"><i data-lucide="plus" class="w-4 h-4"></i></button></div><div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden"><div class="bg-indigo-600 h-full" style="width: ${progress}%"></div></div><div class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">${sessionSubs.map(sub => `<div onclick="toggleSubtask('${sub.id}', ${sub.completed})" class="flex items-center gap-3 cursor-pointer"><div class="w-4 h-4 rounded border-2 ${sub.completed ? 'bg-indigo-600 border-indigo-600' : 'border-slate-200'} flex items-center justify-center">${sub.completed ? '<i data-lucide="check" class="text-white w-3 h-3"></i>' : ''}</div><span class="text-xs font-medium ${sub.completed ? 'text-slate-300 line-through' : 'text-slate-600'}">${sub.title}</span></div>`).join('')}</div></div>`;
                 }).join('');
                 if(list) list.innerHTML = html;
                 if(acadList) acadList.innerHTML = html;
@@ -547,6 +482,9 @@
 
             const pending = document.getElementById('quick-pending-list');
             if(pending) pending.innerHTML = localDb.subtasks.filter(s => !s.completed).slice(0, 5).map(s => `<div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3 font-bold text-xs"><div class="w-2 h-2 rounded-full bg-rose-500"></div>${s.title}</div>`).join('');
+            
+            // Stats
+            if(document.getElementById('dash-total-tasks')) document.getElementById('dash-total-tasks').innerText = localDb.sessions.length;
         }
 
         function renderChart() {
@@ -555,18 +493,16 @@
             const days = [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() - i); return d.toISOString().split('T')[0]; }).reverse();
             const data = days.map(d => localDb.focusLogs.filter(l => l.date === d).reduce((a,b) => a + (b.duration/60), 0));
             if (focusChart) focusChart.destroy();
-            focusChart = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], datasets: [{ data, backgroundColor: '#4f46e5', borderRadius: 8 }] },
-                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
-            });
+            focusChart = new Chart(ctx, { type: 'bar', data: { labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], datasets: [{ data, backgroundColor: '#4f46e5', borderRadius: 8 }] }, options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } } });
         }
 
         function updateStats() {
             const today = new Date().toISOString().split('T')[0];
-            const mins = localDb.focusLogs.filter(l => l.date === today).reduce((a,b) => a + b.duration, 0) / 60;
-            const el = document.getElementById('dash-day-time');
-            if(el) el.innerText = `${Math.floor(mins / 60)}h ${Math.round(mins % 60)}m`;
+            const logs = localDb.focusLogs;
+            const minsToday = logs.filter(l => l.date === today).reduce((a,b) => a + b.duration, 0) / 60;
+            const minsTotal = logs.reduce((a,b) => a + b.duration, 0) / 60;
+            if(document.getElementById('dash-day-time')) document.getElementById('dash-day-time').innerText = `${Math.floor(minsToday / 60)}h ${Math.round(minsToday % 60)}m`;
+            if(document.getElementById('dash-total-focus')) document.getElementById('dash-total-focus').innerText = `${Math.floor(minsTotal / 60)}h`;
         }
 
         function renderAll() {
@@ -599,8 +535,8 @@
 
         setInterval(() => {
             const now = new Date();
-            document.getElementById('current-time').innerText = now.toLocaleTimeString();
-            document.getElementById('current-date').innerText = now.toDateString();
+            if(document.getElementById('current-time')) document.getElementById('current-time').innerText = now.toLocaleTimeString();
+            if(document.getElementById('current-date')) document.getElementById('current-date').innerText = now.toDateString();
         }, 1000);
 
         window.onload = init;

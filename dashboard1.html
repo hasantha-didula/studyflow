@@ -19,7 +19,6 @@
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
         
-        /* Calendar Specifics */
         .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
         .calendar-day { min-height: 120px; transition: all 0.2s ease; }
         .calendar-day:hover { background-color: #f8fafc; }
@@ -63,7 +62,7 @@
 
             <div class="p-6 border-t border-slate-100">
                 <div class="bg-indigo-50 rounded-2xl p-4">
-                    <p class="text-[10px] font-black text-indigo-400 uppercase">Supabase Cloud</p>
+                    <p class="text-[10px] font-black text-indigo-400 uppercase">System Status</p>
                     <p id="sync-status" class="text-xs font-bold text-indigo-600">Initializing...</p>
                 </div>
             </div>
@@ -127,10 +126,9 @@
                         </div>
                         <div class="flex items-center justify-center gap-4">
                             <select id="focus-type" class="px-6 py-4 bg-white border border-slate-200 rounded-2xl font-bold outline-none">
-                                <option value="class">Class Review</option>
+                                <option value="class">Class Session</option>
                                 <option value="homework">Homework Session</option>
                                 <option value="exam">Exam Prep</option>
-                                <option value="other">General Study</option>
                             </select>
                             <button id="timer-btn" onclick="toggleTimer()" class="bg-indigo-600 text-white px-10 py-4 rounded-2xl font-black shadow-xl">Start Session</button>
                         </div>
@@ -140,20 +138,31 @@
                 <!-- TASK MANAGER TAB -->
                 <div id="tab-manager" class="tab-content space-y-8">
                     <div class="flex justify-between items-center">
-                        <h3 class="text-3xl font-black">Active Sessions</h3>
+                        <h3 class="text-3xl font-black">Academic Sessions</h3>
                         <div class="flex gap-3">
-                            <button onclick="openModal('modal-main-hw')" class="bg-amber-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-amber-100">New HW Session</button>
-                            <button onclick="openModal('modal-main-exam')" class="bg-rose-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-rose-100">New Exam Session</button>
+                            <button onclick="openModal('modal-main-class')" class="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-indigo-100">New Class</button>
+                            <button onclick="openModal('modal-main-hw')" class="bg-amber-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-amber-100">New Homework</button>
+                            <button onclick="openModal('modal-main-exam')" class="bg-rose-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-rose-100">New Exam</button>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                         <div class="space-y-4">
-                            <h4 class="text-sm font-black text-slate-400 uppercase">Homework Sessions</h4>
+                            <h4 class="text-sm font-black text-slate-400 uppercase flex items-center gap-2">
+                                <i data-lucide="graduation-cap" class="w-4 h-4"></i> Class Sessions
+                            </h4>
+                            <div id="main-class-list" class="space-y-4"></div>
+                        </div>
+                        <div class="space-y-4">
+                            <h4 class="text-sm font-black text-slate-400 uppercase flex items-center gap-2">
+                                <i data-lucide="book" class="w-4 h-4"></i> Homework Sessions
+                            </h4>
                             <div id="main-hw-list" class="space-y-4"></div>
                         </div>
                         <div class="space-y-4">
-                            <h4 class="text-sm font-black text-slate-400 uppercase">Exam Sessions</h4>
+                            <h4 class="text-sm font-black text-slate-400 uppercase flex items-center gap-2">
+                                <i data-lucide="award" class="w-4 h-4"></i> Exam Prep
+                            </h4>
                             <div id="main-exam-list" class="space-y-4"></div>
                         </div>
                     </div>
@@ -164,54 +173,40 @@
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div class="space-y-1">
                             <h3 class="text-3xl font-black" id="calendar-view-title">Month Year</h3>
-                            <p class="text-xs font-bold text-slate-400 uppercase" id="calendar-subtitle">Today: Feb 13, 2026</p>
+                            <p class="text-xs font-bold text-slate-400 uppercase" id="calendar-subtitle">Academic Timeline</p>
                         </div>
-                        
                         <div class="flex items-center gap-6">
-                            <!-- View Toggles -->
                             <div class="bg-white p-1 rounded-xl border border-slate-200 flex shadow-sm">
                                 <button onclick="setCalendarView('day')" id="view-day" class="view-btn px-4 py-2 rounded-lg text-xs font-black uppercase text-slate-500 transition-all">Day</button>
                                 <button onclick="setCalendarView('week')" id="view-week" class="view-btn px-4 py-2 rounded-lg text-xs font-black uppercase text-slate-500 transition-all">Week</button>
                                 <button onclick="setCalendarView('month')" id="view-month" class="view-btn active px-4 py-2 rounded-lg text-xs font-black uppercase text-slate-500 transition-all">Month</button>
                             </div>
-                            
-                            <!-- Navigation -->
                             <div class="flex gap-2">
                                 <button onclick="navigateCalendar(-1)" class="p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 shadow-sm"><i data-lucide="chevron-left" class="w-5 h-5"></i></button>
                                 <button onclick="navigateCalendar(1)" class="p-3 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 shadow-sm"><i data-lucide="chevron-right" class="w-5 h-5"></i></button>
                             </div>
                         </div>
                     </div>
-
-                    <div id="calendar-container" class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm min-h-[500px]">
-                        <!-- Content dynamically generated by renderCalendar() -->
-                    </div>
+                    <div id="calendar-container" class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm min-h-[500px]"></div>
                 </div>
 
                 <!-- ACADEMIC HUB TAB -->
                 <div id="tab-academic" class="tab-content space-y-8">
                     <h3 class="text-3xl font-black">Academic Hub</h3>
                     <div class="bg-white p-8 rounded-[2rem] border border-slate-200">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                             <div class="space-y-4">
-                                <h4 class="text-sm font-black text-slate-400 uppercase">Homework Overview</h4>
+                                <h4 class="text-sm font-black text-slate-400 uppercase">Classes</h4>
+                                <div id="academic-class-list" class="space-y-4"></div>
+                            </div>
+                            <div class="space-y-4">
+                                <h4 class="text-sm font-black text-slate-400 uppercase">Homework</h4>
                                 <div id="academic-hw-list" class="space-y-4"></div>
                             </div>
                             <div class="space-y-4">
-                                <h4 class="text-sm font-black text-slate-400 uppercase">Exam Overview</h4>
+                                <h4 class="text-sm font-black text-slate-400 uppercase">Exams</h4>
                                 <div id="academic-exam-list" class="space-y-4"></div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ANALYTICS TAB -->
-                <div id="tab-analytics" class="tab-content space-y-10">
-                    <h3 class="text-3xl font-black">Performance Analytics</h3>
-                    <div id="analytics-grid" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        <div class="bg-white p-8 rounded-[2rem] border border-slate-200">
-                             <p class="text-[10px] font-black uppercase text-slate-400">Total Study Time</p>
-                             <h4 class="text-3xl font-black mt-2 text-slate-800" id="total-study-time">0h</h4>
                         </div>
                     </div>
                 </div>
@@ -223,72 +218,71 @@
     <!-- Modals -->
     <div id="modal-overlay" class="hidden fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
         
-        <!-- Main HW Session Modal -->
+        <!-- Class Session Modal -->
+        <div id="modal-main-class" class="modal-window hidden bg-white rounded-3xl w-full max-w-lg p-8 relative">
+            <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <h3 class="text-2xl font-black mb-6">Create Class Session</h3>
+            <form id="class-form" class="space-y-4">
+                <input name="title" required placeholder="Class Name (e.g., Calculus II Lecture)" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
+                <div class="grid grid-cols-2 gap-4">
+                    <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
+                    <input name="date" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl">
+                    <label class="text-[10px] font-black text-slate-400 uppercase">Schedule Frequency</label>
+                    <select name="repeat" class="w-full bg-transparent outline-none font-bold">
+                        <option value="none">One-time</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="biweekly">Bi-weekly</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black">Register Class</button>
+            </form>
+        </div>
+
+        <!-- HW Session Modal -->
         <div id="modal-main-hw" class="modal-window hidden bg-white rounded-3xl w-full max-w-lg p-8 relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
             <h3 class="text-2xl font-black mb-6">Create HW Session</h3>
             <form id="hw-form" class="space-y-4">
-                <input name="title" required placeholder="Session Title (e.g., Week 4 Problem Set)" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
+                <input name="title" required placeholder="Assignment Title" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
                 <div class="grid grid-cols-2 gap-4">
                     <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
                     <input name="deadline" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 </div>
-                <div class="bg-slate-50 p-4 rounded-2xl">
-                    <label class="text-[10px] font-black text-slate-400 uppercase">Repeat Frequency</label>
-                    <select name="repeat" class="w-full bg-transparent outline-none font-bold">
-                        <option value="none">Once</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="biweekly">Bi-weekly</option>
-                        <option value="monthly">Monthly</option>
-                    </select>
+                <button type="submit" class="w-full bg-amber-600 text-white py-4 rounded-2xl font-black">Add Assignment</button>
+            </form>
+        </div>
+
+        <!-- Exam Session Modal -->
+        <div id="modal-main-exam" class="modal-window hidden bg-white rounded-3xl w-full max-w-lg p-8 relative">
+            <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <h3 class="text-2xl font-black mb-6">Create Exam Prep</h3>
+            <form id="exam-form" class="space-y-4">
+                <input name="title" required placeholder="Exam Title" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
+                <div class="grid grid-cols-2 gap-4">
+                    <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
+                    <input name="date" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 </div>
-                <button type="submit" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black">Initialize Session</button>
+                <button type="submit" class="w-full bg-rose-600 text-white py-4 rounded-2xl font-black">Schedule Exam</button>
             </form>
         </div>
 
         <!-- Sub Task Modal -->
         <div id="modal-subtask" class="modal-window hidden bg-white rounded-3xl w-full max-w-sm p-8 relative">
              <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
-            <h3 class="text-xl font-black mb-4">Add Sub-task</h3>
-            <input id="subtask-input" placeholder="Subtask name..." class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none mb-4">
+            <h3 class="text-xl font-black mb-4">Add Task</h3>
+            <input id="subtask-input" placeholder="Topic to cover..." class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none mb-4">
             <button onclick="saveSubtask()" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-bold">Add to Session</button>
-        </div>
-        
-        <!-- Main Exam Session Modal -->
-        <div id="modal-main-exam" class="modal-window hidden bg-white rounded-3xl w-full max-w-lg p-8 relative">
-            <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
-            <h3 class="text-2xl font-black mb-6">Create Exam Session</h3>
-            <form id="exam-form" class="space-y-4">
-                <input name="title" required placeholder="Exam Name (e.g., Mid-term Prep)" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
-                <div class="grid grid-cols-2 gap-4">
-                    <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
-                    <input name="date" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
-                </div>
-                <div class="bg-slate-50 p-4 rounded-2xl">
-                    <label class="text-[10px] font-black text-slate-400 uppercase">Repeat Frequency</label>
-                    <select name="repeat" class="w-full bg-transparent outline-none font-bold">
-                        <option value="none">Once</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="biweekly">Bi-weekly</option>
-                        <option value="monthly">Monthly</option>
-                    </select>
-                </div>
-                <button type="submit" class="w-full bg-rose-600 text-white py-4 rounded-2xl font-black shadow-lg shadow-rose-100">Initialize Session</button>
-            </form>
         </div>
     </div>
 
     <script type="module">
-        // --- Supabase Config & Initialization ---
         const SUPABASE_URL = "https://lkxhfkvptlzbsccdouzd.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxreGhma3ZwdGx6YnNjY2RvdXpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTA1MjQsImV4cCI6MjA4NjQ4NjUyNH0.kiXW5U5cu0-JkK0ewx2hWLMeG9h5co1xH5_5Tn3VLBU";
         
         let supabaseClient;
-        try {
-            supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        } catch(e) {
-            console.warn("Supabase initialization failed.");
-        }
+        try { supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) {}
 
         let user = null;
         let localDb = {
@@ -299,82 +293,37 @@
         };
 
         let focusChart = null;
-        
-        // Calendar State
         let currentCalDate = new Date();
         let currentCalView = 'month';
 
-        // --- Auth & Lifecycle ---
         async function init() {
             if(!supabaseClient) {
-                 document.getElementById('sync-status').innerText = 'Offline Mode';
+                 document.getElementById('sync-status').innerText = 'Local Mode';
                  renderAll();
                  return;
             }
             const { data: { session } } = await supabaseClient.auth.getSession();
-            if (session) {
-                user = session.user;
-                document.getElementById('sync-status').innerText = 'Synced: ' + user.email;
-                startRealtime();
-                loadInitialData();
-            } else {
-                const { data, error } = await supabaseClient.auth.signInAnonymously();
-                if (data?.user) {
-                    user = data.user;
-                    document.getElementById('sync-status').innerText = 'Synced: Guest';
-                    startRealtime();
-                    loadInitialData();
-                } else {
-                    document.getElementById('sync-status').innerText = 'Sync Error';
-                }
-            }
+            user = session?.user || (await supabaseClient.auth.signInAnonymously()).data?.user;
+            document.getElementById('sync-status').innerText = user ? 'Online' : 'Offline';
+            loadInitialData();
         }
 
         async function loadInitialData() {
+            if(!supabaseClient) return;
             const [sRes, stRes, lRes] = await Promise.all([
                 supabaseClient.from('sessions').select('*'),
                 supabaseClient.from('subtasks').select('*'),
                 supabaseClient.from('focus_logs').select('*')
             ]);
-            
             if (!sRes.error) localDb.sessions = sRes.data;
             if (!stRes.error) localDb.subtasks = stRes.data;
             if (!lRes.error) localDb.focusLogs = lRes.data;
-
             renderAll();
             updateStats();
             renderChart();
         }
 
-        function startRealtime() {
-            supabaseClient.channel('db-changes')
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'sessions' }, payload => {
-                    handlePayload('sessions', payload);
-                })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'subtasks' }, payload => {
-                    handlePayload('subtasks', payload);
-                })
-                .on('postgres_changes', { event: '*', schema: 'public', table: 'focus_logs' }, payload => {
-                    handlePayload('focusLogs', payload);
-                })
-                .subscribe();
-        }
-
-        function handlePayload(key, payload) {
-            if (payload.eventType === 'INSERT') {
-                localDb[key].push(payload.new);
-            } else if (payload.eventType === 'UPDATE') {
-                const idx = localDb[key].findIndex(i => i.id === payload.new.id);
-                if (idx !== -1) localDb[key][idx] = payload.new;
-            } else if (payload.eventType === 'DELETE') {
-                localDb[key] = localDb[key].filter(i => i.id !== payload.old.id);
-            }
-            renderAll();
-            updateStats();
-            if (key === 'focusLogs') renderChart();
-        }
-
-        // --- Timer Logic ---
+        // --- Timer ---
         let timeLeft = 1500;
         let timerRunning = false;
         let timerInterval;
@@ -400,36 +349,22 @@
             const secs = timeLeft % 60;
             const display = document.getElementById('timer-display');
             if (display) display.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
-            const offset = 942.48 - (timeLeft / 1500) * 942.48;
             const ring = document.getElementById('timer-progress');
-            if (ring) ring.style.strokeDashoffset = offset;
+            if (ring) ring.style.strokeDashoffset = 942.48 - (timeLeft / 1500) * 942.48;
         }
 
         async function completeSession() {
             clearInterval(timerInterval);
             const type = document.getElementById('focus-type').value;
-            const log = { 
-                user_id: user?.id || 'guest',
-                type, 
-                duration: 1500, 
-                date: new Date().toISOString().split('T')[0] 
-            };
-            
-            if (supabaseClient && user) {
-                await supabaseClient.from('focus_logs').insert([log]);
-            } else {
-                localDb.focusLogs.push(log);
-            }
-            
-            timeLeft = 1500;
-            timerRunning = false;
-            updateTimerUI();
-            updateStats();
-            renderChart();
+            const log = { user_id: user?.id || 'guest', type, duration: 1500, date: new Date().toISOString().split('T')[0] };
+            if (supabaseClient && user) await supabaseClient.from('focus_logs').insert([log]);
+            localDb.focusLogs.push(log);
+            timeLeft = 1500; timerRunning = false;
+            updateTimerUI(); updateStats(); renderChart();
         }
 
-        // --- Manager Logic ---
-        const handleMainSession = async (e, category) => {
+        // --- Session Handlers ---
+        const handleSessionSubmit = async (e, category) => {
             e.preventDefault();
             const formData = new FormData(e.target);
             const session = Object.fromEntries(formData.entries());
@@ -437,59 +372,39 @@
             session.user_id = user?.id || 'guest';
             session.id = crypto.randomUUID();
             
-            if (supabaseClient && user) {
-                await supabaseClient.from('sessions').insert([session]);
-            } else {
-                localDb.sessions.push(session);
-                renderAll();
-            }
+            if (supabaseClient && user) await supabaseClient.from('sessions').insert([session]);
+            localDb.sessions.push(session);
+            renderAll();
             closeModal();
             e.target.reset();
         };
 
-        document.getElementById('hw-form').addEventListener('submit', (e) => handleMainSession(e, 'hw'));
-        document.getElementById('exam-form').addEventListener('submit', (e) => handleMainSession(e, 'exam'));
+        document.getElementById('class-form').addEventListener('submit', (e) => handleSessionSubmit(e, 'class'));
+        document.getElementById('hw-form').addEventListener('submit', (e) => handleSessionSubmit(e, 'hw'));
+        document.getElementById('exam-form').addEventListener('submit', (e) => handleSessionSubmit(e, 'exam'));
 
         let activeSessionId = null;
-        window.openSubtaskModal = (id) => {
-            activeSessionId = id;
-            openModal('modal-subtask');
-        };
+        window.openSubtaskModal = (id) => { activeSessionId = id; openModal('modal-subtask'); };
 
         window.saveSubtask = async () => {
             const title = document.getElementById('subtask-input').value;
             if (!title) return;
-            const subtask = {
-                id: crypto.randomUUID(),
-                user_id: user?.id || 'guest',
-                session_id: activeSessionId,
-                title,
-                completed: false
-            };
-
-            if (supabaseClient && user) {
-                await supabaseClient.from('subtasks').insert([subtask]);
-            } else {
-                localDb.subtasks.push(subtask);
-                renderAll();
-            }
+            const subtask = { id: crypto.randomUUID(), user_id: user?.id || 'guest', session_id: activeSessionId, title, completed: false };
+            if (supabaseClient && user) await supabaseClient.from('subtasks').insert([subtask]);
+            localDb.subtasks.push(subtask);
+            renderAll();
             document.getElementById('subtask-input').value = '';
             closeModal();
         };
 
         window.toggleSubtask = async (id, currentStatus) => {
-            if (supabaseClient && user) {
-                await supabaseClient.from('subtasks')
-                    .update({ completed: !currentStatus })
-                    .eq('id', id);
-            } else {
-                const idx = localDb.subtasks.findIndex(s => s.id === id);
-                if (idx !== -1) localDb.subtasks[idx].completed = !currentStatus;
-                renderAll();
-            }
+            if (supabaseClient && user) await supabaseClient.from('subtasks').update({ completed: !currentStatus }).eq('id', id);
+            const idx = localDb.subtasks.findIndex(s => s.id === id);
+            if (idx !== -1) localDb.subtasks[idx].completed = !currentStatus;
+            renderAll();
         };
 
-        // --- CALENDAR LOGIC (MULTI-VIEW) ---
+        // --- Calendar ---
         window.setCalendarView = (view) => {
             currentCalView = view;
             document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
@@ -498,334 +413,194 @@
         };
 
         window.navigateCalendar = (dir) => {
-            if (currentCalView === 'month') {
-                currentCalDate.setMonth(currentCalDate.getMonth() + dir);
-            } else if (currentCalView === 'week') {
-                currentCalDate.setDate(currentCalDate.getDate() + (dir * 7));
-            } else {
-                currentCalDate.setDate(currentCalDate.getDate() + dir);
-            }
+            if (currentCalView === 'month') currentCalDate.setMonth(currentCalDate.getMonth() + dir);
+            else if (currentCalView === 'week') currentCalDate.setDate(currentCalDate.getDate() + (dir * 7));
+            else currentCalDate.setDate(currentCalDate.getDate() + dir);
             renderCalendar();
         };
 
         function renderCalendar() {
             const container = document.getElementById('calendar-container');
             const titleEl = document.getElementById('calendar-view-title');
-            if (!container) return;
-
             const todayStr = new Date().toISOString().split('T')[0];
-
-            if (currentCalView === 'month') {
-                renderMonthView(container, titleEl, todayStr);
-            } else if (currentCalView === 'week') {
-                renderWeekView(container, titleEl, todayStr);
-            } else {
-                renderDayView(container, titleEl, todayStr);
-            }
+            if (currentCalView === 'month') renderMonthView(container, titleEl, todayStr);
+            else if (currentCalView === 'week') renderWeekView(container, titleEl, todayStr);
+            else renderDayView(container, titleEl, todayStr);
             lucide.createIcons();
         }
 
         function renderMonthView(container, titleEl, todayStr) {
-            const year = currentCalDate.getFullYear();
-            const month = currentCalDate.getMonth();
+            const year = currentCalDate.getFullYear(), month = currentCalDate.getMonth();
             titleEl.innerText = currentCalDate.toLocaleString('default', { month: 'long', year: 'numeric' });
-
-            const firstDay = new Date(year, month, 1).getDay();
-            const lastDate = new Date(year, month + 1, 0).getDate();
-            const prevLastDate = new Date(year, month, 0).getDate();
-
-            let html = `
-                <div class="calendar-grid border-b border-slate-100 bg-slate-50/50">
-                    ${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => `<div class="py-4 text-center text-[10px] font-black text-slate-400 uppercase tracking-widest">${d}</div>`).join('')}
-                </div>
-                <div class="calendar-grid">
-            `;
-
-            for (let i = firstDay; i > 0; i--) {
-                html += `<div class="calendar-day p-4 opacity-20 border-r border-b border-slate-100 text-xs font-bold text-slate-400">${prevLastDate - i + 1}</div>`;
-            }
-
+            const firstDay = new Date(year, month, 1).getDay(), lastDate = new Date(year, month + 1, 0).getDate();
+            let html = `<div class="calendar-grid border-b border-slate-100 bg-slate-50/50">${['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(d => `<div class="py-4 text-center text-[10px] font-black text-slate-400 uppercase">${d}</div>`).join('')}</div><div class="calendar-grid">`;
+            for (let i = 0; i < firstDay; i++) html += `<div class="calendar-day opacity-20 border-r border-b border-slate-100"></div>`;
             for (let i = 1; i <= lastDate; i++) {
-                const isoStr = new Date(year, month, i).toISOString().split('T')[0];
-                const isToday = isoStr === todayStr;
-                const sessions = localDb.sessions.filter(s => (s.deadline || s.date) === isoStr);
-
+                const date = new Date(year, month, i).toISOString().split('T')[0];
+                const sessions = localDb.sessions.filter(s => (s.date || s.deadline) === date);
                 html += `
-                    <div class="calendar-day p-4 border-r border-b border-slate-100 relative ${isToday ? 'bg-indigo-50/30' : ''}">
-                        <span class="text-xs font-black ${isToday ? 'text-indigo-600 bg-indigo-100 px-2 py-1 rounded-lg' : 'text-slate-700'}">${i}</span>
+                    <div class="calendar-day p-3 border-r border-b border-slate-100 relative ${date === todayStr ? 'bg-indigo-50/20' : ''}">
+                        <span class="text-xs font-black ${date === todayStr ? 'text-indigo-600' : 'text-slate-500'}">${i}</span>
                         <div class="mt-2 space-y-1">
                             ${sessions.map(s => `
-                                <div class="text-[8px] font-bold px-1.5 py-0.5 rounded flex items-center gap-1 ${s.category === 'hw' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}">
-                                    <span class="w-1 h-1 rounded-full ${s.category === 'hw' ? 'bg-amber-500' : 'bg-rose-500'}"></span>
-                                    ${s.title.substring(0, 10)}
+                                <div class="text-[7px] font-black px-1 py-0.5 rounded uppercase truncate ${s.category === 'class' ? 'bg-indigo-100 text-indigo-700' : s.category === 'hw' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}">
+                                    ${s.title}
                                 </div>
                             `).join('')}
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
-            html += `</div>`;
-            container.innerHTML = html;
+            container.innerHTML = html + `</div>`;
         }
 
         function renderWeekView(container, titleEl, todayStr) {
-            const startOfWeek = new Date(currentCalDate);
-            startOfWeek.setDate(currentCalDate.getDate() - currentCalDate.getDay());
-            const endOfWeek = new Date(startOfWeek);
-            endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-            titleEl.innerText = `${startOfWeek.toLocaleDateString('default', {month:'short', day:'numeric'})} - ${endOfWeek.toLocaleDateString('default', {month:'short', day:'numeric', year:'numeric'})}`;
-
-            let html = `<div class="grid grid-cols-7 h-full divide-x divide-slate-100 min-h-[500px]">`;
-
+            const start = new Date(currentCalDate); start.setDate(currentCalDate.getDate() - currentCalDate.getDay());
+            titleEl.innerText = `${start.toLocaleDateString('default', {month:'short', day:'numeric'})} - ${new Date(start.getTime() + 518400000).toLocaleDateString('default', {month:'short', day:'numeric', year:'numeric'})}`;
+            let html = `<div class="grid grid-cols-7 divide-x divide-slate-100 min-h-[500px]">`;
             for (let i = 0; i < 7; i++) {
-                const day = new Date(startOfWeek);
-                day.setDate(startOfWeek.getDate() + i);
-                const isoStr = day.toISOString().split('T')[0];
-                const isToday = isoStr === todayStr;
-                const sessions = localDb.sessions.filter(s => (s.deadline || s.date) === isoStr);
-
+                const d = new Date(start); d.setDate(start.getDate() + i);
+                const iso = d.toISOString().split('T')[0];
+                const sessions = localDb.sessions.filter(s => (s.date || s.deadline) === iso);
                 html += `
-                    <div class="flex flex-col ${isToday ? 'bg-indigo-50/20' : ''}">
+                    <div class="${iso === todayStr ? 'bg-indigo-50/10' : ''}">
                         <div class="p-6 border-b border-slate-100 text-center">
-                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">${day.toLocaleString('default', {weekday:'short'})}</p>
-                            <p class="text-xl font-black mt-1 ${isToday ? 'text-indigo-600' : 'text-slate-800'}">${day.getDate()}</p>
+                            <p class="text-[10px] font-black text-slate-400 uppercase">${d.toLocaleString('default', {weekday:'short'})}</p>
+                            <p class="text-xl font-black ${iso === todayStr ? 'text-indigo-600' : ''}">${d.getDate()}</p>
                         </div>
-                        <div class="flex-1 p-4 space-y-3">
+                        <div class="p-3 space-y-2">
                             ${sessions.map(s => `
-                                <div class="p-3 rounded-2xl border ${s.category === 'hw' ? 'bg-amber-50 border-amber-100 text-amber-800' : 'bg-rose-50 border-rose-100 text-rose-800'}">
-                                    <p class="text-[9px] font-black uppercase opacity-60">${s.category === 'hw' ? 'Homework' : 'Exam'}</p>
-                                    <p class="text-xs font-bold leading-tight mt-1">${s.title}</p>
+                                <div class="p-2.5 rounded-xl border ${s.category === 'class' ? 'bg-indigo-50 border-indigo-100 text-indigo-800' : s.category === 'hw' ? 'bg-amber-50 border-amber-100 text-amber-800' : 'bg-rose-50 border-rose-100 text-rose-800'}">
+                                    <p class="text-[8px] font-black uppercase opacity-60">${s.category}</p>
+                                    <p class="text-[11px] font-bold leading-tight">${s.title}</p>
                                 </div>
                             `).join('')}
                         </div>
-                    </div>
-                `;
+                    </div>`;
             }
-            html += `</div>`;
-            container.innerHTML = html;
+            container.innerHTML = html + `</div>`;
         }
 
         function renderDayView(container, titleEl, todayStr) {
-            const isoStr = currentCalDate.toISOString().split('T')[0];
-            titleEl.innerText = currentCalDate.toLocaleDateString('default', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-
-            const sessions = localDb.sessions.filter(s => (s.deadline || s.date) === isoStr);
-
+            const iso = currentCalDate.toISOString().split('T')[0];
+            titleEl.innerText = currentCalDate.toLocaleDateString('default', { weekday: 'long', month: 'long', day: 'numeric' });
+            const sessions = localDb.sessions.filter(s => (s.date || s.deadline) === iso);
             container.innerHTML = `
-                <div class="p-10 flex flex-col items-center justify-center min-h-[500px]">
-                    <div class="w-full max-w-2xl space-y-6">
-                        <div class="flex items-center gap-4 mb-10">
-                            <div class="w-16 h-16 bg-indigo-600 rounded-3xl flex items-center justify-center shadow-xl shadow-indigo-100 text-white">
-                                <i data-lucide="calendar" class="w-8 h-8"></i>
-                            </div>
-                            <div>
-                                <h4 class="text-2xl font-black">Agenda for Today</h4>
-                                <p class="text-slate-400 font-bold">${sessions.length} sessions scheduled</p>
-                            </div>
-                        </div>
-
-                        ${sessions.length > 0 ? sessions.map(s => `
-                            <div class="bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm flex items-center justify-between group hover:border-indigo-200 transition-all">
-                                <div class="flex items-center gap-6">
-                                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center ${s.category === 'hw' ? 'bg-amber-100 text-amber-600' : 'bg-rose-100 text-rose-600'}">
-                                        <i data-lucide="${s.category === 'hw' ? 'book' : 'award'}" class="w-6 h-6"></i>
+                <div class="p-10 flex justify-center min-h-[500px]">
+                    <div class="w-full max-w-xl space-y-4">
+                        ${sessions.length ? sessions.map(s => `
+                            <div class="bg-white p-6 rounded-[2rem] border border-slate-100 flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-12 h-12 rounded-2xl flex items-center justify-center ${s.category === 'class' ? 'bg-indigo-100 text-indigo-600' : s.category === 'hw' ? 'bg-amber-100 text-amber-600' : 'bg-rose-100 text-rose-600'}">
+                                        <i data-lucide="${s.category === 'class' ? 'graduation-cap' : s.category === 'hw' ? 'book' : 'award'}" class="w-6 h-6"></i>
                                     </div>
                                     <div>
-                                        <p class="text-[10px] font-black uppercase tracking-widest opacity-40">${s.category === 'hw' ? 'Homework' : 'Exam'}</p>
-                                        <h5 class="text-xl font-black text-slate-800">${s.title}</h5>
+                                        <p class="text-[10px] font-black uppercase opacity-40">${s.category}</p>
+                                        <h5 class="text-lg font-black">${s.title}</h5>
                                     </div>
                                 </div>
-                                <div class="text-right">
-                                    <span class="px-4 py-2 bg-slate-50 rounded-xl text-xs font-bold text-slate-500 uppercase">Deadline: ${s.deadline || s.date}</span>
-                                </div>
                             </div>
-                        `).join('') : `
-                            <div class="text-center py-20 space-y-4">
-                                <div class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto text-slate-200">
-                                    <i data-lucide="calendar-off" class="w-10 h-10"></i>
-                                </div>
-                                <p class="text-slate-400 font-bold">No sessions found for this day.</p>
-                                <button onclick="openModal('modal-main-hw')" class="text-indigo-600 font-black text-sm hover:underline">+ Schedule Something</button>
-                            </div>
-                        `}
+                        `).join('') : '<div class="text-center py-20 text-slate-400 font-bold">Free Day! No sessions.</div>'}
                     </div>
-                </div>
-            `;
+                </div>`;
         }
 
-        // --- Standard Render Functions ---
-        function renderAll() {
-            renderManager();
-            renderSubjects();
-            renderCalendar();
-            lucide.createIcons();
-        }
-
+        // --- Manager UI ---
         function renderManager() {
-            const hwList = document.getElementById('main-hw-list');
-            const examList = document.getElementById('main-exam-list');
-            const pendingList = document.getElementById('quick-pending-list');
-            const academicHwList = document.getElementById('academic-hw-list');
-            const academicExamList = document.getElementById('academic-exam-list');
-
-            if (!hwList || !examList || !pendingList) return;
-
-            const sessions = localDb.sessions;
-            const subs = localDb.subtasks;
-
-            const renderCard = (s) => {
-                const sessionSubs = subs.filter(sub => sub.session_id === s.id);
-                const done = sessionSubs.filter(sub => sub.completed).length;
-                const total = sessionSubs.length;
-                const progress = total === 0 ? 0 : (done / total) * 100;
-                const subColor = localDb.subjects.find(sub => sub.id === s.subject_id)?.color || 'slate';
-
-                return `
-                    <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
-                        <div class="flex justify-between items-start">
-                            <div class="flex-1">
-                                <h5 class="font-black text-slate-800">${s.title}</h5>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <p class="text-[10px] font-bold text-${subColor}-500 uppercase">${s.deadline || s.date || 'No Date'}</p>
-                                    ${s.repeat && s.repeat !== 'none' ? `<span class="bg-indigo-50 text-indigo-600 text-[8px] px-1.5 py-0.5 rounded font-black uppercase"><i data-lucide="refresh-cw" class="w-2 h-2 inline mr-1"></i>${s.repeat}</span>` : ''}
+            const categories = ['class', 'hw', 'exam'];
+            categories.forEach(cat => {
+                const list = document.getElementById(`main-${cat}-list`);
+                const acadList = document.getElementById(`academic-${cat}-list`);
+                const sessions = localDb.sessions.filter(s => s.category === cat);
+                const html = sessions.map(s => {
+                    const sessionSubs = localDb.subtasks.filter(sub => sub.session_id === s.id);
+                    const done = sessionSubs.filter(sub => sub.completed).length;
+                    const progress = sessionSubs.length ? (done / sessionSubs.length) * 100 : 0;
+                    const color = localDb.subjects.find(sub => sub.id === s.subject_id)?.color || 'slate';
+                    return `
+                        <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h5 class="font-black text-slate-800 leading-tight">${s.title}</h5>
+                                    <p class="text-[10px] font-bold text-${color}-500 uppercase mt-1">${s.date || s.deadline}</p>
                                 </div>
+                                <button onclick="openSubtaskModal('${s.id}')" class="p-2 bg-slate-50 rounded-xl hover:bg-indigo-600 hover:text-white transition-all">
+                                    <i data-lucide="plus" class="w-4 h-4"></i>
+                                </button>
                             </div>
-                            <button onclick="openSubtaskModal('${s.id}')" class="p-2 bg-slate-50 rounded-xl hover:bg-indigo-600 hover:text-white transition-all">
-                                <i data-lucide="plus" class="w-4 h-4"></i>
-                            </button>
-                        </div>
-                        <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
-                            <div class="bg-indigo-600 h-full transition-all" style="width: ${progress}%"></div>
-                        </div>
-                        <div class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
-                            ${sessionSubs.map(sub => `
-                                <div onclick="toggleSubtask('${sub.id}', ${sub.completed})" class="flex items-center gap-3 cursor-pointer group">
-                                    <div class="w-4 h-4 rounded border-2 ${sub.completed ? 'bg-indigo-600 border-indigo-600' : 'border-slate-200'} flex items-center justify-center">
-                                        ${sub.completed ? '<i data-lucide="check" class="text-white w-3 h-3"></i>' : ''}
-                                    </div>
-                                    <span class="text-xs font-medium ${sub.completed ? 'text-slate-300 line-through' : 'text-slate-600'}">${sub.title}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                `;
-            };
+                            <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                <div class="bg-indigo-600 h-full" style="width: ${progress}%"></div>
+                            </div>
+                            <div class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
+                                ${sessionSubs.map(sub => `
+                                    <div onclick="toggleSubtask('${sub.id}', ${sub.completed})" class="flex items-center gap-3 cursor-pointer">
+                                        <div class="w-4 h-4 rounded border-2 ${sub.completed ? 'bg-indigo-600 border-indigo-600' : 'border-slate-200'} flex items-center justify-center">
+                                            ${sub.completed ? '<i data-lucide="check" class="text-white w-3 h-3"></i>' : ''}
+                                        </div>
+                                        <span class="text-xs font-medium ${sub.completed ? 'text-slate-300 line-through' : 'text-slate-600'}">${sub.title}</span>
+                                    </div>`).join('')}
+                            </div>
+                        </div>`;
+                }).join('');
+                if(list) list.innerHTML = html;
+                if(acadList) acadList.innerHTML = html;
+            });
 
-            hwList.innerHTML = sessions.filter(s => s.category === 'hw').map(renderCard).join('');
-            examList.innerHTML = sessions.filter(s => s.category === 'exam').map(renderCard).join('');
-            
-            if (academicHwList) academicHwList.innerHTML = hwList.innerHTML || '<p class="text-slate-400 text-sm italic">No homework sessions.</p>';
-            if (academicExamList) academicExamList.innerHTML = examList.innerHTML || '<p class="text-slate-400 text-sm italic">No exam sessions.</p>';
-            
-            pendingList.innerHTML = subs.filter(sub => !sub.completed).slice(0, 5).map(sub => `
-                <div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
-                    <div class="w-2 h-2 rounded-full bg-rose-500"></div>
-                    <span class="text-xs font-bold text-slate-700">${sub.title}</span>
-                </div>
-            `).join('');
-            lucide.createIcons();
+            const pending = document.getElementById('quick-pending-list');
+            if(pending) pending.innerHTML = localDb.subtasks.filter(s => !s.completed).slice(0, 5).map(s => `<div class="bg-white p-4 rounded-2xl border border-slate-100 flex items-center gap-3 font-bold text-xs"><div class="w-2 h-2 rounded-full bg-rose-500"></div>${s.title}</div>`).join('');
         }
 
         function renderChart() {
-            const canvasEl = document.getElementById('focusChart');
-            if (!canvasEl) return;
-            const ctx = canvasEl.getContext('2d');
-            const last7Days = [...Array(7)].map((_, i) => {
-                const d = new Date();
-                d.setDate(d.getDate() - i);
-                return d.toISOString().split('T')[0];
-            }).reverse();
-
-            const data = last7Days.map(day => {
-                const logs = localDb.focusLogs.filter(l => l.date === day);
-                return logs.reduce((acc, curr) => acc + (curr.duration / 60), 0); 
-            });
-
+            const ctx = document.getElementById('focusChart')?.getContext('2d');
+            if (!ctx) return;
+            const days = [...Array(7)].map((_, i) => { const d = new Date(); d.setDate(d.getDate() - i); return d.toISOString().split('T')[0]; }).reverse();
+            const data = days.map(d => localDb.focusLogs.filter(l => l.date === d).reduce((a,b) => a + (b.duration/60), 0));
             if (focusChart) focusChart.destroy();
             focusChart = new Chart(ctx, {
                 type: 'bar',
-                data: {
-                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                    datasets: [{
-                        label: 'Focus Minutes',
-                        data: data,
-                        backgroundColor: '#4f46e5',
-                        borderRadius: 12,
-                        barThickness: 15
-                    }]
-                },
-                options: {
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
-                }
+                data: { labels: ['M', 'T', 'W', 'T', 'F', 'S', 'S'], datasets: [{ data, backgroundColor: '#4f46e5', borderRadius: 8 }] },
+                options: { maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { y: { display: false }, x: { grid: { display: false } } } }
             });
         }
 
         function updateStats() {
             const today = new Date().toISOString().split('T')[0];
-            const logs = localDb.focusLogs;
-            
-            const todayMins = logs.filter(l => l.date === today).reduce((a,b) => a + b.duration, 0) / 60;
-            const dayEl = document.getElementById('dash-day-time');
-            if (dayEl) dayEl.innerText = `${Math.floor(todayMins / 60)}h ${Math.round(todayMins % 60)}m`;
-            
-            const weekMins = logs.reduce((a,b) => a + b.duration, 0) / 60;
-            const weekEl = document.getElementById('dash-week-time');
-            if (weekEl) weekEl.innerText = `${Math.floor(weekMins / 60)}h ${Math.round(weekMins % 60)}m`;
-
-            const totalEl = document.getElementById('total-study-time');
-            if (totalEl) totalEl.innerText = `${Math.floor(weekMins / 60)}h`;
+            const mins = localDb.focusLogs.filter(l => l.date === today).reduce((a,b) => a + b.duration, 0) / 60;
+            const el = document.getElementById('dash-day-time');
+            if(el) el.innerText = `${Math.floor(mins / 60)}h ${Math.round(mins % 60)}m`;
         }
 
-        function renderSubjects() {
+        function renderAll() {
+            renderManager();
             const html = localDb.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
             document.querySelectorAll('.subject-select').forEach(sel => sel.innerHTML = html);
+            renderCalendar();
+            lucide.createIcons();
         }
 
-        // --- Standard UI Helpers ---
         window.switchTab = (id) => {
-            const targetTab = document.getElementById(`tab-${id}`);
-            if (!targetTab) return;
-
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            targetTab.classList.add('active');
-            
+            document.getElementById(`tab-${id}`).classList.add('active');
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             const btn = Array.from(document.querySelectorAll('.nav-link')).find(b => b.innerText.toLowerCase().includes(id));
             if (btn) btn.classList.add('active');
-            
-            const titleEl = document.getElementById('header-title');
-            if (titleEl) titleEl.innerText = id.replace(/-/g, ' ');
-            
+            document.getElementById('header-title').innerText = id.replace(/-/g, ' ');
             if (id === 'dashboard') setTimeout(renderChart, 100);
             if (id === 'calendar') renderCalendar();
             lucide.createIcons();
         };
 
         window.openModal = (id) => {
-            const overlay = document.getElementById('modal-overlay');
-            const modal = document.getElementById(id);
-            if (overlay && modal) {
-                overlay.classList.remove('hidden');
-                document.querySelectorAll('.modal-window').forEach(m => m.classList.add('hidden'));
-                modal.classList.remove('hidden');
-            }
+            document.getElementById('modal-overlay').classList.remove('hidden');
+            document.querySelectorAll('.modal-window').forEach(m => m.classList.add('hidden'));
+            document.getElementById(id).classList.remove('hidden');
         };
 
-        window.closeModal = () => {
-            const overlay = document.getElementById('modal-overlay');
-            if (overlay) overlay.classList.add('hidden');
-        };
+        window.closeModal = () => document.getElementById('modal-overlay').classList.add('hidden');
 
-        // Clock
         setInterval(() => {
             const now = new Date();
-            const timeEl = document.getElementById('current-time');
-            const dateEl = document.getElementById('current-date');
-            if (timeEl) timeEl.innerText = now.toLocaleTimeString();
-            if (dateEl) dateEl.innerText = now.toDateString();
+            document.getElementById('current-time').innerText = now.toLocaleTimeString();
+            document.getElementById('current-date').innerText = now.toDateString();
         }, 1000);
 
         window.onload = init;

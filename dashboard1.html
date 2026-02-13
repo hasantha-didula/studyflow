@@ -61,6 +61,7 @@
                 <div class="bg-indigo-50 rounded-2xl p-4">
                     <p class="text-[10px] font-black text-indigo-400 uppercase">System Status</p>
                     <p id="sync-status" class="text-xs font-bold text-indigo-600">Initializing...</p>
+                    <p id="db-status" class="text-[10px] font-bold text-indigo-400 mt-1"></p>
                 </div>
             </div>
         </aside>
@@ -252,7 +253,7 @@
                 <input name="title" required placeholder="Assignment Title" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
                 <div class="grid grid-cols-2 gap-4">
                     <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
-                    <input name="date" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                    <input name="deadline" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
                 </div>
                 <div class="grid grid-cols-2 gap-4">
                     <div>
@@ -301,14 +302,15 @@
         </div>
     </div>
 
-    <script type="module">
+    <script>
         const SUPABASE_URL = "https://lkxhfkvptlzbsccdouzd.supabase.co";
         const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxreGhma3ZwdGx6YnNjY2RvdXpkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA5MTA1MjQsImV4cCI6MjA4NjQ4NjUyNH0.kiXW5U5cu0-JkK0ewx2hWLMeG9h5co1xH5_5Tn3VLBU";
         
-        let supabaseClient;
-        try { supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch(e) {}
-
+        // Initialize Supabase
+        let supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
         let user = null;
+        
+        // Local database
         let localDb = {
             subjects: [
                 {id: 's1', name: 'Combined Maths', color: 'indigo'}, 
@@ -339,32 +341,110 @@
         let currentCalDate = new Date();
         let currentCalView = 'month';
 
-        async function init() {
-            if(!supabaseClient) {
-                 document.getElementById('sync-status').innerText = 'Local Mode';
-                 renderAll();
-                 return;
-            }
-            const { data: { session } } = await supabaseClient.auth.getSession();
-            user = session?.user || (await supabaseClient.auth.signInAnonymously()).data?.user;
-            document.getElementById('sync-status').innerText = user ? 'Online' : 'Offline';
-            loadInitialData();
-        }
+        // TIMER LOGIC
+        let timeLeft = 1500;
+        let timerRunning = false;
+        let timerInterval;
 
-        async function loadInitialData() {
-            if(!supabaseClient) return;
-            const [sRes, stRes, lRes] = await Promise.all([
-                supabaseClient.from('sessions').select('*'),
-                supabaseClient.from('subtasks').select('*'),
-                supabaseClient.from('focus_logs').select('*')
-            ]);
-            if (!sRes.error) localDb.sessions = sRes.data || [];
-            if (!stRes.error) localDb.subtasks = stRes.data || [];
-            if (!lRes.error) localDb.focusLogs = lRes.data || [];
+        // Initialize the app
+        async function init() {
+            try {
+                // Try to get existing session or sign in anonymously
+                const { data: { session } } = await supabaseClient.auth.getSession();
+                user = session?.user;
+                
+                if (!user) {
+                    const { data } = await supabaseClient.auth.signInAnonymously();
+                    user = data?.user;
+                }
+
+                document.getElementById('sync-status').innerText = user ? 'Connected' : 'Local Mode';
+                
+                // Load data from Supabase
+                await loadData();
+                
+                // Setup realtime subscriptions
+                setupSubscriptions();
+                
+            } catch (error) {
+                console.error('Initialization error:', error);
+                document.getElementById('sync-status').innerText = 'Local Mode (Offline)';
+                document.getElementById('db-status').innerText = 'Working offline';
+            }
+            
             renderAll();
             updateStats();
         }
 
+        // Load all data from Supabase
+        async function loadData() {
+            if (!supabaseClient || !user) return;
+
+            try {
+                // Load sessions
+                const { data: sessions, error: sessionsError } = await supabaseClient
+                    .from('sessions')
+                    .select('*')
+                    .eq('user_id', user.id);
+                
+                if (sessionsError) {
+                    console.error('Error loading sessions:', sessionsError);
+                    document.getElementById('db-status').innerText = 'Sessions table not found';
+                } else if (sessions) {
+                    localDb.sessions = sessions;
+                }
+
+                // Load subtasks
+                const { data: subtasks, error: subtasksError } = await supabaseClient
+                    .from('subtasks')
+                    .select('*')
+                    .eq('user_id', user.id);
+                
+                if (!subtasksError && subtasks) {
+                    localDb.subtasks = subtasks;
+                }
+
+                // Load focus logs
+                const { data: focusLogs, error: logsError } = await supabaseClient
+                    .from('focus_logs')
+                    .select('*')
+                    .eq('user_id', user.id);
+                
+                if (!logsError && focusLogs) {
+                    localDb.focusLogs = focusLogs;
+                }
+
+            } catch (error) {
+                console.error('Error loading data:', error);
+            }
+        }
+
+        // Setup realtime subscriptions
+        function setupSubscriptions() {
+            if (!supabaseClient || !user) return;
+
+            // Subscribe to sessions changes
+            supabaseClient
+                .channel('sessions-changes')
+                .on('postgres_changes', 
+                    { 
+                        event: '*', 
+                        schema: 'public', 
+                        table: 'sessions',
+                        filter: `user_id=eq.${user.id}`
+                    }, 
+                    payload => {
+                        console.log('Sessions changed:', payload);
+                        loadData().then(() => {
+                            renderAll();
+                            updateStats();
+                        });
+                    }
+                )
+                .subscribe();
+        }
+
+        // Format time for display
         function formatTime(timeStr) {
             if (!timeStr) return '';
             const [hours, mins] = timeStr.split(':');
@@ -373,8 +453,9 @@
             return `${h % 12 || 12}:${mins} ${ampm}`;
         }
 
+        // Check if session occurs on a specific date (handling repeats)
         function isSessionOnDate(session, targetDateStr) {
-            const initialDateStr = session.date;
+            const initialDateStr = session.date || session.deadline;
             if (!initialDateStr) return false;
 
             const initial = new Date(initialDateStr + "T00:00:00");
@@ -394,11 +475,7 @@
             return false;
         }
 
-        // TIMER LOGIC
-        let timeLeft = 1500;
-        let timerRunning = false;
-        let timerInterval;
-
+        // Timer functions
         window.toggleTimer = () => {
             if (timerRunning) {
                 clearInterval(timerInterval);
@@ -427,14 +504,41 @@
         async function completeSession() {
             clearInterval(timerInterval);
             const type = document.getElementById('focus-type').value;
-            const log = { user_id: user?.id, type, duration: 1500, date: new Date().toISOString().split('T')[0] };
-            if (supabaseClient && user) await supabaseClient.from('focus_logs').insert([log]);
-            localDb.focusLogs.push(log);
-            timeLeft = 1500; timerRunning = false;
-            updateTimerUI(); updateStats();
+            const log = { 
+                user_id: user?.id, 
+                type, 
+                duration: 1500, 
+                date: new Date().toISOString().split('T')[0] 
+            };
+            
+            // Save to Supabase if connected
+            if (supabaseClient && user) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('focus_logs')
+                        .insert([log])
+                        .select();
+                    
+                    if (!error && data) {
+                        localDb.focusLogs.push(data[0]);
+                    } else {
+                        localDb.focusLogs.push(log);
+                    }
+                } catch (err) {
+                    console.error('Failed to save focus log:', err);
+                    localDb.focusLogs.push(log);
+                }
+            } else {
+                localDb.focusLogs.push(log);
+            }
+            
+            timeLeft = 1500;
+            timerRunning = false;
+            updateTimerUI();
+            updateStats();
         }
 
-        // CALENDAR LOGIC
+        // CALENDAR FUNCTIONS
         window.setCalendarView = (view) => {
             currentCalView = view;
             document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
@@ -496,7 +600,7 @@
             container.innerHTML = `<div class="p-10 flex justify-center min-h-[500px]"><div class="w-full max-w-xl space-y-4">${sessions.length ? sessions.map(s => `<div class="bg-white p-6 rounded-[2rem] border border-slate-100 flex items-center justify-between shadow-sm"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-2xl flex items-center justify-center ${s.category === 'class' ? 'bg-indigo-100 text-indigo-600' : s.category === 'hw' ? 'bg-amber-100 text-amber-600' : 'bg-rose-100 text-rose-600'}"><i data-lucide="${s.category === 'class' ? 'graduation-cap' : s.category === 'hw' ? 'book' : 'award'}" class="w-6 h-6"></i></div><div><p class="text-[10px] font-black uppercase opacity-40">${s.category} • ${formatTime(s.start_time)} - ${formatTime(s.end_time)}</p><h5 class="text-lg font-black">${s.title}</h5></div></div></div>`).join('') : '<div class="text-center py-20 text-slate-400 font-bold">No sessions found.</div>'}</div></div>`;
         }
 
-        // ANALYSIS CHART LOGIC
+        // ANALYSIS CHART
         window.renderAnalysisChart = () => {
             const canvas = document.getElementById('analysisChart');
             if (!canvas) return;
@@ -507,6 +611,8 @@
             const dataValues = marks.map(m => m.score);
 
             let trendValues = [];
+            let prediction = '--';
+            
             if (dataValues.length > 1) {
                 const n = dataValues.length;
                 let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
@@ -521,14 +627,13 @@
                 
                 for (let i = 0; i < n; i++) trendValues.push(slope * i + intercept);
                 
-                const prediction = Math.min(100, Math.max(0, Math.round(slope * n + intercept)));
-                document.getElementById('predicted-score').innerText = prediction + '%';
-            } else {
-                document.getElementById('predicted-score').innerText = '--';
+                prediction = Math.min(100, Math.max(0, Math.round(slope * n + intercept))) + '%';
             }
+            
+            document.getElementById('predicted-score').innerText = prediction;
 
-            const avg = dataValues.length ? Math.round(dataValues.reduce((a,b) => a+b, 0) / dataValues.length) : '--';
-            document.getElementById('average-score').innerText = avg + '%';
+            const avg = dataValues.length ? Math.round(dataValues.reduce((a,b) => a+b, 0) / dataValues.length) + '%' : '--';
+            document.getElementById('average-score').innerText = avg;
 
             if (analysisChart) analysisChart.destroy();
             
@@ -579,88 +684,75 @@
             });
         };
 
-        // UI & MANAGER LOGIC
-        function renderManager() {
-            const categories = ['class', 'hw', 'exam'];
-            categories.forEach(cat => {
-                const list = document.getElementById(`main-${cat}-list`);
-                const sessions = localDb.sessions.filter(s => s.category === cat).sort((a,b) => (a.start_time || '').localeCompare(b.start_time || ''));
-                
-                const html = sessions.map(s => {
-                    const sessionSubs = localDb.subtasks.filter(sub => sub.session_id === s.id);
-                    const done = sessionSubs.filter(sub => sub.completed).length;
-                    const progress = sessionSubs.length ? (done / sessionSubs.length) * 100 : 0;
-                    return `
-                        <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
-                            <div class="flex justify-between items-start">
-                                <div class="flex-1">
-                                    <h5 class="font-black text-slate-800 leading-tight">${s.title}</h5>
-                                    <div class="flex items-center gap-2 mt-1">
-                                        <p class="text-[10px] font-bold text-slate-400 uppercase">${s.date}</p>
-                                        <span class="text-[10px] font-black text-indigo-500 uppercase bg-indigo-50 px-2 py-0.5 rounded">${formatTime(s.start_time)}</span>
-                                    </div>
-                                </div>
-                                <button onclick="openSubtaskModal('${s.id}')" class="p-2 bg-slate-50 rounded-xl hover:bg-indigo-600 hover:text-white"><i data-lucide="plus" class="w-4 h-4"></i></button>
-                            </div>
-                            <div class="w-full bg-slate-100 h-1 rounded-full"><div class="bg-indigo-600 h-full rounded-full" style="width: ${progress}%"></div></div>
-                        </div>`;
-                }).join('');
-                if(list) list.innerHTML = html || '<div class="text-center py-10 text-slate-400 text-xs italic">Nothing yet</div>';
-            });
-            lucide.createIcons();
-        }
-
-        /**
-         * UPDATED: FIXED DATABASE PERSISTENCE FOR ALL SESSION TYPES
-         * This handles Classes, Homeworks, and Exams.
-         */
+        // ============ FIXED: SESSION SUBMISSION WITH PROPER DATABASE STORAGE ============
         const handleSessionSubmit = async (e, category) => {
             e.preventDefault();
+            
             const formData = new FormData(e.target);
             const sessionData = Object.fromEntries(formData.entries());
             
-            // Generate unique ID and link to user
-            sessionData.id = crypto.randomUUID();
+            // Ensure all required fields are present
             sessionData.category = category;
             sessionData.user_id = user?.id || null;
+            sessionData.id = crypto.randomUUID();
+            sessionData.created_at = new Date().toISOString();
             
-            // Standardize field names (ensure 'date' is present even if form uses 'deadline')
-            if (sessionData.deadline) {
+            // Handle date field based on category
+            if (category === 'hw') {
                 sessionData.date = sessionData.deadline;
                 delete sessionData.deadline;
             }
+            
+            // Handle repeat field
+            if (!sessionData.repeat) sessionData.repeat = 'none';
+            
+            // Show saving indicator
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = 'Saving...';
+            btn.disabled = true;
 
-            // 1. Optimistic UI update
-            localDb.sessions.push(sessionData);
-            renderAll();
-            updateStats();
-            closeModal();
-            e.target.reset();
+            try {
+                // Add to local DB immediately for optimistic UI
+                localDb.sessions.push(sessionData);
+                renderAll();
+                updateStats();
+                closeModal();
+                e.target.reset();
 
-            // 2. Database Sync
-            if (supabaseClient && user) {
-                try {
+                // Try to save to Supabase
+                if (supabaseClient && user) {
                     const { data, error } = await supabaseClient
                         .from('sessions')
                         .insert([sessionData])
                         .select();
                     
                     if (error) {
-                        console.error(`Supabase Error [${category}]:`, error.message);
-                    } else if (data) {
-                        console.log(`Successfully stored ${category} in database`);
-                        // Sync local object with server data if needed
+                        console.error('Database error:', error);
+                        document.getElementById('db-status').innerText = 'Error: ' + error.message.substring(0, 30) + '...';
+                        
+                        // If table doesn't exist, show how to create it
+                        if (error.code === '42P01') {
+                            document.getElementById('db-status').innerHTML = 'Please create "sessions" table in Supabase';
+                        }
+                    } else if (data && data.length > 0) {
+                        // Update local with server-generated data
                         const idx = localDb.sessions.findIndex(s => s.id === sessionData.id);
                         if (idx !== -1) localDb.sessions[idx] = data[0];
+                        renderAll();
+                        document.getElementById('db-status').innerText = 'Saved to database';
                     }
-                } catch (err) {
-                    console.error('Critical sync failure:', err);
                 }
-            } else {
-                console.warn('Sync skipped: Not connected to Supabase or user not authenticated.');
+            } catch (err) {
+                console.error('Submission failed:', err);
+                document.getElementById('db-status').innerText = 'Save failed - working offline';
+            } finally {
+                btn.innerText = originalText;
+                btn.disabled = false;
             }
         };
 
+        // Subtask handling with database
         window.openSubtaskModal = (sessionId) => {
             activeSessionId = sessionId;
             openModal('modal-subtask');
@@ -674,25 +766,71 @@
             const subtask = {
                 id: crypto.randomUUID(),
                 session_id: activeSessionId,
-                title,
+                title: title,
                 completed: false,
-                user_id: user?.id || null
+                user_id: user?.id || null,
+                created_at: new Date().toISOString()
             };
 
-            localDb.subtasks.push(subtask);
-            renderAll();
-            input.value = '';
-            closeModal();
+            try {
+                // Optimistic update
+                localDb.subtasks.push(subtask);
+                renderAll();
+                input.value = '';
+                closeModal();
 
-            if (supabaseClient && user) {
-                const { data, error } = await supabaseClient.from('subtasks').insert([subtask]).select();
-                if (!error && data) {
-                    const idx = localDb.subtasks.findIndex(s => s.id === subtask.id);
-                    if (idx !== -1) localDb.subtasks[idx] = data[0];
-                    renderAll();
+                // Save to Supabase
+                if (supabaseClient && user) {
+                    const { data, error } = await supabaseClient
+                        .from('subtasks')
+                        .insert([subtask])
+                        .select();
+                    
+                    if (error) {
+                        console.error('Error saving subtask:', error);
+                    } else if (data && data.length > 0) {
+                        const idx = localDb.subtasks.findIndex(s => s.id === subtask.id);
+                        if (idx !== -1) localDb.subtasks[idx] = data[0];
+                        renderAll();
+                    }
                 }
+            } catch (err) {
+                console.error('Failed to save subtask:', err);
             }
         };
+
+        // UI Functions
+        function renderManager() {
+            const categories = ['class', 'hw', 'exam'];
+            categories.forEach(cat => {
+                const list = document.getElementById(`main-${cat}-list`);
+                const sessions = localDb.sessions
+                    .filter(s => s.category === cat)
+                    .sort((a,b) => (a.start_time || '').localeCompare(b.start_time || ''));
+                
+                const html = sessions.map(s => {
+                    const sessionSubs = localDb.subtasks.filter(sub => sub.session_id === s.id);
+                    const done = sessionSubs.filter(sub => sub.completed).length;
+                    const progress = sessionSubs.length ? (done / sessionSubs.length) * 100 : 0;
+                    return `
+                        <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h5 class="font-black text-slate-800 leading-tight">${s.title}</h5>
+                                    <div class="flex items-center gap-2 mt-1">
+                                        <p class="text-[10px] font-bold text-slate-400 uppercase">${s.date || ''}</p>
+                                        <span class="text-[10px] font-black text-indigo-500 uppercase bg-indigo-50 px-2 py-0.5 rounded">${formatTime(s.start_time)}</span>
+                                    </div>
+                                </div>
+                                <button onclick="openSubtaskModal('${s.id}')" class="p-2 bg-slate-50 rounded-xl hover:bg-indigo-600 hover:text-white"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                            </div>
+                            <div class="w-full bg-slate-100 h-1 rounded-full"><div class="bg-indigo-600 h-full rounded-full" style="width: ${progress}%"></div></div>
+                        </div>`;
+                }).join('');
+                if(list) list.innerHTML = html || '<div class="text-center py-10 text-slate-400 text-xs italic">Nothing yet</div>';
+            });
+            lucide.createIcons();
+        }
 
         function updateStats() {
             const dashTotalTasks = document.getElementById('dash-total-tasks');
@@ -720,6 +858,7 @@
             lucide.createIcons();
         }
 
+        // Tab switching
         window.switchTab = (id) => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             const target = document.getElementById(`tab-${id}`);
@@ -727,7 +866,7 @@
             
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             const links = Array.from(document.querySelectorAll('.nav-link'));
-            const activeLink = links.find(l => l.getAttribute('onclick').includes(id));
+            const activeLink = links.find(l => l.getAttribute('onclick')?.includes(id));
             if(activeLink) activeLink.classList.add('active');
 
             document.getElementById('header-title').innerText = id.replace(/-/g, ' ');
@@ -737,6 +876,7 @@
             lucide.createIcons();
         };
 
+        // Modal functions
         window.openModal = (id) => {
             document.getElementById('modal-overlay').classList.remove('hidden');
             document.querySelectorAll('.modal-window').forEach(m => m.classList.add('hidden'));
@@ -746,8 +886,8 @@
 
         window.closeModal = () => document.getElementById('modal-overlay').classList.add('hidden');
 
+        // Event listeners
         document.addEventListener('DOMContentLoaded', () => {
-            // Attach form handlers
             const classForm = document.getElementById('class-form');
             if (classForm) classForm.onsubmit = (e) => handleSessionSubmit(e, 'class');
             
@@ -760,12 +900,46 @@
             init();
         });
 
+        // Update time every second
         setInterval(() => {
             const now = new Date();
             if(document.getElementById('current-time')) document.getElementById('current-time').innerText = now.toLocaleTimeString();
             if(document.getElementById('current-date')) document.getElementById('current-date').innerText = now.toDateString();
         }, 1000);
 
+        // SQL to create tables in Supabase SQL Editor:
+        /*
+        CREATE TABLE sessions (
+            id UUID PRIMARY KEY,
+            user_id UUID,
+            title TEXT NOT NULL,
+            category TEXT NOT NULL,
+            subject_id TEXT,
+            date DATE,
+            start_time TIME,
+            end_time TIME,
+            repeat TEXT DEFAULT 'none',
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+
+        CREATE TABLE subtasks (
+            id UUID PRIMARY KEY,
+            session_id UUID,
+            user_id UUID,
+            title TEXT NOT NULL,
+            completed BOOLEAN DEFAULT FALSE,
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+
+        CREATE TABLE focus_logs (
+            id SERIAL PRIMARY KEY,
+            user_id UUID,
+            type TEXT,
+            duration INTEGER,
+            date DATE,
+            created_at TIMESTAMP DEFAULT NOW()
+        );
+        */
     </script>
 </body>
 </html>

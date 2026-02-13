@@ -554,6 +554,11 @@
             renderCalendar();
         };
 
+        function getSubjectColor(subjectId) {
+            const subject = localDb.subjects.find(s => s.id === subjectId);
+            return subject ? subject.color : 'slate';
+        }
+
         function renderCalendar() {
             const container = document.getElementById('calendar-container');
             const titleEl = document.getElementById('calendar-view-title');
@@ -576,7 +581,16 @@
             for (let i = 1; i <= lastDate; i++) {
                 const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
                 const sessions = localDb.sessions.filter(s => isSessionOnDate(s, dateStr));
-                html += `<div class="calendar-day p-2 ${dateStr === todayStr ? 'bg-indigo-50/20' : ''}"><span class="text-xs font-black ${dateStr === todayStr ? 'text-indigo-600' : 'text-slate-500'}">${i}</span><div class="mt-1 space-y-1">${sessions.map(s => `<div class="text-[7px] font-black px-1 py-0.5 rounded truncate ${s.category === 'class' ? 'bg-indigo-100 text-indigo-700' : s.category === 'hw' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}">${s.start_time ? formatTime(s.start_time) + ' ' : ''}${s.title}</div>`).join('')}</div></div>`;
+                html += `
+                    <div class="calendar-day p-2 ${dateStr === todayStr ? 'bg-indigo-50/20' : ''}">
+                        <span class="text-xs font-black ${dateStr === todayStr ? 'text-indigo-600' : 'text-slate-500'}">${i}</span>
+                        <div class="mt-1 space-y-1">
+                            ${sessions.map(s => {
+                                const subColor = getSubjectColor(s.subject_id);
+                                return `<div class="text-[7px] font-black px-1 py-0.5 rounded truncate bg-${subColor}-100 text-${subColor}-700 border border-${subColor}-200/50">${s.start_time ? formatTime(s.start_time) + ' ' : ''}${s.title}</div>`;
+                            }).join('')}
+                        </div>
+                    </div>`;
             }
             container.innerHTML = html + `</div>`;
         }
@@ -589,7 +603,25 @@
                 const d = new Date(start); d.setDate(start.getDate() + i);
                 const iso = d.toISOString().split('T')[0];
                 const sessions = localDb.sessions.filter(s => isSessionOnDate(s, iso)).sort((a,b) => (a.start_time || '').localeCompare(b.start_time || ''));
-                html += `<div class="${iso === todayStr ? 'bg-indigo-50/10' : ''}"><div class="p-6 border-b border-slate-100 text-center"><p class="text-[10px] font-black text-slate-400 uppercase">${d.toLocaleString('default', {weekday:'short'})}</p><p class="text-xl font-black ${iso === todayStr ? 'text-indigo-600' : ''}">${d.getDate()}</p></div><div class="p-3 space-y-2">${sessions.map(s => `<div class="p-2.5 rounded-xl border ${s.category === 'class' ? 'bg-indigo-50 border-indigo-100 text-indigo-800' : s.category === 'hw' ? 'bg-amber-50 border-amber-100 text-amber-800' : 'bg-rose-50 border-rose-100 text-rose-800'}"><p class="text-[8px] font-black uppercase opacity-60 flex items-center justify-between">${s.category} <span>${formatTime(s.start_time)}</span></p><p class="text-[11px] font-bold leading-tight mt-1">${s.title}</p></div>`).join('')}</div></div>`;
+                html += `
+                    <div class="${iso === todayStr ? 'bg-indigo-50/10' : ''}">
+                        <div class="p-6 border-b border-slate-100 text-center">
+                            <p class="text-[10px] font-black text-slate-400 uppercase">${d.toLocaleString('default', {weekday:'short'})}</p>
+                            <p class="text-xl font-black ${iso === todayStr ? 'text-indigo-600' : ''}">${d.getDate()}</p>
+                        </div>
+                        <div class="p-3 space-y-2">
+                            ${sessions.map(s => {
+                                const subColor = getSubjectColor(s.subject_id);
+                                return `
+                                <div class="p-2.5 rounded-xl border bg-${subColor}-50 border-${subColor}-100 text-${subColor}-800">
+                                    <p class="text-[8px] font-black uppercase opacity-60 flex items-center justify-between">
+                                        ${s.category} <span>${formatTime(s.start_time)}</span>
+                                    </p>
+                                    <p class="text-[11px] font-bold leading-tight mt-1">${s.title}</p>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>`;
             }
             container.innerHTML = html + `</div>`;
         }
@@ -598,7 +630,21 @@
             const iso = currentCalDate.toISOString().split('T')[0];
             titleEl.innerText = currentCalDate.toLocaleDateString('default', { weekday: 'long', month: 'long', day: 'numeric' });
             const sessions = localDb.sessions.filter(s => isSessionOnDate(s, iso)).sort((a,b) => (a.start_time || '').localeCompare(b.start_time || ''));
-            container.innerHTML = `<div class="p-10 flex justify-center min-h-[500px]"><div class="w-full max-w-xl space-y-4">${sessions.length ? sessions.map(s => `<div class="bg-white p-6 rounded-[2rem] border border-slate-100 flex items-center justify-between shadow-sm"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-2xl flex items-center justify-center ${s.category === 'class' ? 'bg-indigo-100 text-indigo-600' : s.category === 'hw' ? 'bg-amber-100 text-amber-600' : 'bg-rose-100 text-rose-600'}"><i data-lucide="${s.category === 'class' ? 'graduation-cap' : s.category === 'hw' ? 'book' : 'award'}" class="w-6 h-6"></i></div><div><p class="text-[10px] font-black uppercase opacity-40">${s.category} • ${formatTime(s.start_time)} - ${formatTime(s.end_time)}</p><h5 class="text-lg font-black">${s.title}</h5></div></div></div>`).join('') : '<div class="text-center py-20 text-slate-400 font-bold">No sessions found.</div>'}</div></div>`;
+            container.innerHTML = `<div class="p-10 flex justify-center min-h-[500px]"><div class="w-full max-w-xl space-y-4">${sessions.length ? sessions.map(s => {
+                const subColor = getSubjectColor(s.subject_id);
+                return `
+                <div class="bg-white p-6 rounded-[2rem] border border-slate-100 flex items-center justify-between shadow-sm">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-2xl flex items-center justify-center bg-${subColor}-100 text-${subColor}-600">
+                            <i data-lucide="${s.category === 'class' ? 'graduation-cap' : s.category === 'hw' ? 'book' : 'award'}" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black uppercase opacity-40">${s.category} • ${formatTime(s.start_time)} - ${formatTime(s.end_time)}</p>
+                            <h5 class="text-lg font-black">${s.title}</h5>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('') : '<div class="text-center py-20 text-slate-400 font-bold">No sessions found.</div>'}</div></div>`;
         }
 
         // ANALYSIS CHART LOGIC

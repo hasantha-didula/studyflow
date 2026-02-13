@@ -23,14 +23,6 @@
         .calendar-day { min-height: 120px; transition: all 0.2s ease; border-right: 1px solid #f1f5f9; border-bottom: 1px solid #f1f5f9; }
         .calendar-day:hover { background-color: #f8fafc; }
         .view-btn.active { background: #4f46e5; color: white; }
-
-        /* Time Grid Styles */
-        .time-grid-container { display: grid; grid-template-columns: 60px 1fr; position: relative; }
-        .time-sidebar { display: grid; grid-template-rows: repeat(20, 60px); } /* 4AM to 12AM = 20 hours */
-        .time-slot { height: 60px; border-bottom: 1px solid #f1f5f9; position: relative; }
-        .time-label { font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase; transform: translateY(-50%); background: white; padding-right: 4px; z-index: 10; }
-        .day-column { position: relative; height: 1200px; border-left: 1px solid #f1f5f9; background-image: linear-gradient(#f1f5f9 1px, transparent 1px); background-size: 100% 60px; }
-        .session-card-abs { position: absolute; left: 4px; right: 4px; border-radius: 12px; padding: 8px; overflow: hidden; font-size: 11px; border-width: 1px; z-index: 20; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 overflow-hidden">
@@ -63,6 +55,7 @@
                 <button onclick="switchTab('analyze')" class="nav-link w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-500 hover:bg-slate-100">
                     <i data-lucide="trending-up" class="w-5 h-5"></i> Analyze
                 </button>
+                <!-- SETTINGS TRIGGER -->
                 <button onclick="openModal('modal-settings')" class="w-full mt-4 flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all">
                     <i data-lucide="settings" class="w-5 h-5"></i> Settings
                 </button>
@@ -121,6 +114,25 @@
                     <div class="bg-white p-10 rounded-[2.5rem] border border-slate-100 shadow-sm">
                         <div class="h-[400px] w-full">
                             <canvas id="analysisChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-indigo-50/50 p-8 rounded-[2rem] border border-indigo-100/50">
+                            <p class="text-[10px] font-black text-indigo-400 uppercase mb-2">Trend Insights</p>
+                            <h4 class="text-xl font-black text-slate-800 mb-4">Predicted Next Score</h4>
+                            <div class="flex items-baseline gap-3">
+                                <span class="text-4xl font-black text-indigo-600" id="predicted-score">--</span>
+                                <span class="text-sm font-bold text-slate-400">based on recent velocity</span>
+                            </div>
+                        </div>
+                        <div class="bg-slate-50 p-8 rounded-[2rem] border border-slate-100">
+                            <p class="text-[10px] font-black text-slate-400 uppercase mb-2">Historical Average</p>
+                            <h4 class="text-xl font-black text-slate-800 mb-4">Average Grade</h4>
+                            <div class="flex items-baseline gap-3">
+                                <span class="text-4xl font-black text-slate-800" id="average-score">--</span>
+                                <span class="text-sm font-bold text-slate-400">overall performance</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -194,7 +206,7 @@
                             </div>
                         </div>
                     </div>
-                    <div id="calendar-container" class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm min-h-[600px]"></div>
+                    <div id="calendar-container" class="bg-white rounded-[2rem] border border-slate-200 overflow-hidden shadow-sm min-h-[500px]"></div>
                 </div>
             </div>
         </main>
@@ -202,11 +214,14 @@
 
     <!-- Modals Overlay -->
     <div id="modal-overlay" class="hidden fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-        <!-- Settings Modal -->
+        
+        <!-- Settings/Subject Manager Modal -->
         <div id="modal-settings" class="modal-window hidden bg-white rounded-3xl w-full max-w-lg p-8 relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
             <h3 class="text-2xl font-black mb-6">Subject Settings</h3>
+            
             <div class="space-y-6">
+                <!-- Add Subject Form -->
                 <form id="add-subject-form" class="flex gap-2">
                     <input id="new-subject-name" required placeholder="Subject Name" class="flex-1 px-5 py-3 bg-slate-50 rounded-xl outline-none font-medium text-sm">
                     <select id="new-subject-color" class="px-3 py-3 bg-slate-50 rounded-xl outline-none text-sm font-bold">
@@ -219,16 +234,22 @@
                     </select>
                     <button type="submit" class="bg-indigo-600 text-white px-4 py-3 rounded-xl font-bold text-sm shadow-md">Add</button>
                 </form>
-                <div id="settings-subject-list" class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-2"></div>
+
+                <div class="space-y-2">
+                    <p class="text-[10px] font-black text-slate-400 uppercase px-2">Current Subjects</p>
+                    <div id="settings-subject-list" class="space-y-2 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                        <!-- Subjects will be injected here -->
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Session Creation Modal -->
+        <!-- Class Session Modal -->
         <div id="modal-main-class" class="modal-window hidden bg-white rounded-3xl w-full max-w-lg p-8 relative">
             <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
-            <h3 class="text-2xl font-black mb-6">Create Session</h3>
+            <h3 class="text-2xl font-black mb-6">Create Class</h3>
             <form id="class-form" class="space-y-4">
-                <input name="title" required placeholder="Session Name" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
+                <input name="title" required placeholder="Class Name" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
                 <div class="grid grid-cols-2 gap-4">
                     <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
                     <input name="date" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
@@ -252,10 +273,77 @@
                         <option value="biweekly">Bi-weekly</option>
                     </select>
                 </div>
-                <button type="submit" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg">Add Session</button>
+                <button type="submit" class="w-full bg-indigo-600 text-white py-4 rounded-2xl font-black shadow-lg">Add Class</button>
             </form>
         </div>
-        <!-- (Other modals for HW/Exam follow same logic but simplified to one creation modal for this snippet) -->
+
+        <!-- HW Session Modal -->
+        <div id="modal-main-hw" class="modal-window hidden bg-white rounded-3xl w-full max-w-lg p-8 relative">
+            <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <h3 class="text-2xl font-black mb-6">Create Homework</h3>
+            <form id="hw-form" class="space-y-4">
+                <input name="title" required placeholder="Assignment Title" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
+                <div class="grid grid-cols-2 gap-4">
+                    <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
+                    <input name="date" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase mb-2 px-2">Start Time</p>
+                        <input name="start_time" type="time" required class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase mb-2 px-2">End Time</p>
+                        <input name="end_time" type="time" required class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-2 px-2">Repeat Frequency</p>
+                    <select name="repeat" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                        <option value="none">No Repeat</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="biweekly">Bi-weekly</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-amber-600 text-white py-4 rounded-2xl font-black shadow-lg">Add Homework</button>
+            </form>
+        </div>
+
+        <!-- Exam Session Modal -->
+        <div id="modal-main-exam" class="modal-window hidden bg-white rounded-3xl w-full max-w-lg p-8 relative">
+            <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
+            <h3 class="text-2xl font-black mb-6">Create Exam Prep</h3>
+            <form id="exam-form" class="space-y-4">
+                <input name="title" required placeholder="Exam Name" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none font-medium">
+                <div class="grid grid-cols-2 gap-4">
+                    <select name="subject_id" class="subject-select px-5 py-4 bg-slate-50 rounded-2xl outline-none"></select>
+                    <input name="date" type="date" required class="px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase mb-2 px-2">Start Time</p>
+                        <input name="start_time" type="time" required class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-black text-slate-400 uppercase mb-2 px-2">End Time</p>
+                        <input name="end_time" type="time" required class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                    </div>
+                </div>
+                <div>
+                    <p class="text-[10px] font-black text-slate-400 uppercase mb-2 px-2">Repeat Frequency</p>
+                    <select name="repeat" class="w-full px-5 py-4 bg-slate-50 rounded-2xl outline-none">
+                        <option value="none">No Repeat</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="biweekly">Bi-weekly</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-rose-600 text-white py-4 rounded-2xl font-black shadow-lg">Add Exam</button>
+            </form>
+        </div>
+
+        <!-- Sub Task Modal -->
         <div id="modal-subtask" class="modal-window hidden bg-white rounded-3xl w-full max-w-sm p-8 relative">
              <button onclick="closeModal()" class="absolute top-6 right-6 p-2 bg-slate-100 rounded-full"><i data-lucide="x" class="w-4 h-4"></i></button>
             <h3 class="text-xl font-black mb-4">Add Task Item</h3>
@@ -273,14 +361,27 @@
 
         let user = null;
         let localDb = {
-            subjects: [{id: 's1', name: 'Combined Maths', color: 'indigo'}, {id: 's2', name: 'Chemistry', color: 'rose'}, {id: 's3', name: 'Physics', color: 'emerald'}],
+            subjects: [
+                {id: 's1', name: 'Combined Maths', color: 'indigo'}, 
+                {id: 's2', name: 'Chemistry', color: 'rose'}, 
+                {id: 's3', name: 'Physics', color: 'emerald'}
+            ],
             sessions: [], 
             subtasks: [], 
             focusLogs: [],
             examMarks: [
-                { subject_id: 's1', date: '2025-10-01', score: 65 }, { subject_id: 's1', date: '2025-11-01', score: 72 }, { subject_id: 's1', date: '2025-12-01', score: 78 }, { subject_id: 's1', date: '2026-01-01', score: 85 },
-                { subject_id: 's2', date: '2025-10-15', score: 45 }, { subject_id: 's2', date: '2025-11-15', score: 58 }, { subject_id: 's2', date: '2025-12-15', score: 60 }, { subject_id: 's2', date: '2026-01-15', score: 62 },
-                { subject_id: 's3', date: '2025-10-10', score: 80 }, { subject_id: 's3', date: '2025-11-10', score: 82 }, { subject_id: 's3', date: '2025-12-10', score: 81 }, { subject_id: 's3', date: '2026-01-10', score: 88 }
+                { subject_id: 's1', date: '2025-10-01', score: 65 },
+                { subject_id: 's1', date: '2025-11-01', score: 72 },
+                { subject_id: 's1', date: '2025-12-01', score: 78 },
+                { subject_id: 's1', date: '2026-01-01', score: 85 },
+                { subject_id: 's2', date: '2025-10-15', score: 45 },
+                { subject_id: 's2', date: '2025-11-15', score: 58 },
+                { subject_id: 's2', date: '2025-12-15', score: 60 },
+                { subject_id: 's2', date: '2026-01-15', score: 62 },
+                { subject_id: 's3', date: '2025-10-10', score: 80 },
+                { subject_id: 's3', date: '2025-11-10', score: 82 },
+                { subject_id: 's3', date: '2025-12-10', score: 81 },
+                { subject_id: 's3', date: '2026-01-10', score: 88 }
             ]
         };
 
@@ -317,23 +418,56 @@
             updateStats();
         }
 
-        // Time Calc Helpers
-        function getMinutesFrom4AM(timeStr) {
-            if (!timeStr) return 0;
-            const [h, m] = timeStr.split(':').map(Number);
-            let totalMins = h * 60 + m;
-            let startMins = 4 * 60; // 4 AM
-            return Math.max(0, totalMins - startMins);
-        }
+        // SUBJECTS MANAGEMENT
+        window.deleteSubject = async (id) => {
+            localDb.subjects = localDb.subjects.filter(s => s.id !== id);
+            renderAll();
+            if (supabaseClient && user) {
+                await supabaseClient.from('subjects').delete().eq('id', id);
+            }
+        };
 
-        function getSessionPosition(startTime, endTime) {
-            const startMins = getMinutesFrom4AM(startTime);
-            const endMins = getMinutesFrom4AM(endTime);
-            const duration = endMins - startMins;
-            return {
-                top: (startMins / 60) * 60, // 60px per hour
-                height: (duration / 60) * 60
+        const handleAddSubject = async (e) => {
+            e.preventDefault();
+            const nameInput = document.getElementById('new-subject-name');
+            const colorInput = document.getElementById('new-subject-color');
+            const name = nameInput.value.trim();
+            const color = colorInput.value;
+
+            if (!name) return;
+
+            const newSub = {
+                id: crypto.randomUUID(),
+                name,
+                color,
+                user_id: user?.id || null
             };
+
+            localDb.subjects.push(newSub);
+            nameInput.value = '';
+            renderAll();
+
+            if (supabaseClient && user) {
+                await supabaseClient.from('subjects').insert([newSub]);
+            }
+        };
+
+        function renderSubjectsSettings() {
+            const list = document.getElementById('settings-subject-list');
+            if (!list) return;
+
+            list.innerHTML = localDb.subjects.map(s => `
+                <div class="flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl group">
+                    <div class="flex items-center gap-3">
+                        <div class="w-3 h-3 rounded-full bg-${s.color}-500"></div>
+                        <span class="text-sm font-bold text-slate-700">${s.name}</span>
+                    </div>
+                    <button onclick="deleteSubject('${s.id}')" class="text-slate-300 hover:text-rose-500 transition-colors">
+                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `).join('');
+            lucide.createIcons();
         }
 
         function formatTime(timeStr) {
@@ -347,31 +481,79 @@
         function isSessionOnDate(session, targetDateStr) {
             const initialDateStr = session.date;
             if (!initialDateStr) return false;
+
             const initial = new Date(initialDateStr + "T00:00:00");
             const target = new Date(targetDateStr + "T00:00:00");
+            
             if (target < initial) return false;
             if (targetDateStr === initialDateStr) return true;
             if (!session.repeat || session.repeat === 'none') return false;
-            const diffDays = Math.ceil(Math.abs(target - initial) / (1000 * 60 * 60 * 24));
+
+            const diffTime = Math.abs(target - initial);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
             if (session.repeat === 'daily') return true;
             if (session.repeat === 'weekly') return diffDays % 7 === 0;
             if (session.repeat === 'biweekly') return diffDays % 14 === 0;
+            
             return false;
         }
 
-        // Calendar Grid Generator
-        function generateTimeGrid() {
-            let html = '<div class="time-sidebar">';
-            for (let i = 4; i <= 24; i++) {
-                const hour = i > 12 ? (i === 24 ? 12 : i - 12) : i;
-                const ampm = i >= 12 && i < 24 ? 'PM' : 'AM';
-                html += `<div class="time-slot"><span class="time-label">${hour} ${ampm}</span></div>`;
+        // TIMER LOGIC
+        let timeLeft = 1500;
+        let timerRunning = false;
+        let timerInterval;
+
+        window.toggleTimer = () => {
+            if (timerRunning) {
+                clearInterval(timerInterval);
+                timerRunning = false;
+                document.getElementById('timer-btn').innerText = 'Resume';
+            } else {
+                timerRunning = true;
+                document.getElementById('timer-btn').innerText = 'Pause';
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    updateTimerUI();
+                    if (timeLeft <= 0) completeSession();
+                }, 1000);
             }
-            html += '</div>';
-            return html;
+        };
+
+        function updateTimerUI() {
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            const display = document.getElementById('timer-display');
+            if (display) display.innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
+            const ring = document.getElementById('timer-progress');
+            if (ring) ring.style.strokeDashoffset = 942.48 - (timeLeft / 1500) * 942.48;
         }
 
-        // Render Calendar Views
+        async function completeSession() {
+            clearInterval(timerInterval);
+            const type = document.getElementById('focus-type').value;
+            const log = { user_id: user?.id, type, duration: 1500, date: new Date().toISOString().split('T')[0] };
+            if (supabaseClient && user) await supabaseClient.from('focus_logs').insert([log]);
+            localDb.focusLogs.push(log);
+            timeLeft = 1500; timerRunning = false;
+            updateTimerUI(); updateStats();
+        }
+
+        // CALENDAR LOGIC
+        window.setCalendarView = (view) => {
+            currentCalView = view;
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(`view-${view}`).classList.add('active');
+            renderCalendar();
+        };
+
+        window.navigateCalendar = (dir) => {
+            if (currentCalView === 'month') currentCalDate.setMonth(currentCalDate.getMonth() + dir);
+            else if (currentCalView === 'week') currentCalDate.setDate(currentCalDate.getDate() + (dir * 7));
+            else currentCalDate.setDate(currentCalDate.getDate() + dir);
+            renderCalendar();
+        };
+
         function renderCalendar() {
             const container = document.getElementById('calendar-container');
             const titleEl = document.getElementById('calendar-view-title');
@@ -394,17 +576,7 @@
             for (let i = 1; i <= lastDate; i++) {
                 const dateStr = `${year}-${(month + 1).toString().padStart(2, '0')}-${i.toString().padStart(2, '0')}`;
                 const sessions = localDb.sessions.filter(s => isSessionOnDate(s, dateStr));
-                html += `
-                    <div class="calendar-day p-2 ${dateStr === todayStr ? 'bg-indigo-50/20' : ''}">
-                        <span class="text-xs font-black ${dateStr === todayStr ? 'text-indigo-600' : 'text-slate-500'}">${i}</span>
-                        <div class="mt-1 space-y-1">
-                            ${sessions.map(s => {
-                                const subject = localDb.subjects.find(sub => sub.id === s.subject_id);
-                                const color = subject ? subject.color : 'indigo';
-                                return `<div class="text-[7px] font-black px-1 py-0.5 rounded truncate bg-${color}-100 text-${color}-700 border border-${color}-200/50">${s.title}</div>`;
-                            }).join('')}
-                        </div>
-                    </div>`;
+                html += `<div class="calendar-day p-2 ${dateStr === todayStr ? 'bg-indigo-50/20' : ''}"><span class="text-xs font-black ${dateStr === todayStr ? 'text-indigo-600' : 'text-slate-500'}">${i}</span><div class="mt-1 space-y-1">${sessions.map(s => `<div class="text-[7px] font-black px-1 py-0.5 rounded truncate ${s.category === 'class' ? 'bg-indigo-100 text-indigo-700' : s.category === 'hw' ? 'bg-amber-100 text-amber-700' : 'bg-rose-100 text-rose-700'}">${s.start_time ? formatTime(s.start_time) + ' ' : ''}${s.title}</div>`).join('')}</div></div>`;
             }
             container.innerHTML = html + `</div>`;
         }
@@ -412,150 +584,287 @@
         function renderWeekView(container, titleEl, todayStr) {
             const start = new Date(currentCalDate); start.setDate(currentCalDate.getDate() - currentCalDate.getDay());
             titleEl.innerText = `${start.toLocaleDateString('default', {month:'short', day:'numeric'})} - ${new Date(start.getTime() + 518400000).toLocaleDateString('default', {month:'short', day:'numeric', year:'numeric'})}`;
-            
-            let html = `<div class="time-grid-container overflow-y-auto max-h-[600px] custom-scrollbar">`;
-            html += generateTimeGrid();
-            html += `<div class="grid grid-cols-7 divide-x divide-slate-100">`;
-            
+            let html = `<div class="grid grid-cols-7 divide-x divide-slate-100 min-h-[500px]">`;
             for (let i = 0; i < 7; i++) {
                 const d = new Date(start); d.setDate(start.getDate() + i);
                 const iso = d.toISOString().split('T')[0];
-                const sessions = localDb.sessions.filter(s => isSessionOnDate(s, iso));
-                
-                html += `
-                    <div class="day-column">
-                        <div class="sticky top-0 z-30 bg-white/90 backdrop-blur-sm border-b border-slate-100 py-3 text-center">
-                            <p class="text-[9px] font-black text-slate-400 uppercase">${d.toLocaleString('default', {weekday:'short'})}</p>
-                            <p class="text-sm font-black ${iso === todayStr ? 'text-indigo-600' : ''}">${d.getDate()}</p>
-                        </div>
-                        ${sessions.map(s => {
-                            const pos = getSessionPosition(s.start_time, s.end_time);
-                            const subject = localDb.subjects.find(sub => sub.id === s.subject_id);
-                            const color = subject ? subject.color : 'indigo';
-                            return `
-                                <div class="session-card-abs bg-${color}-50 border-${color}-200 text-${color}-800" style="top: ${pos.top}px; height: ${pos.height}px;">
-                                    <p class="font-black text-[9px] leading-tight truncate">${s.title}</p>
-                                    <p class="text-[8px] opacity-60 font-bold">${formatTime(s.start_time)}</p>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>`;
+                const sessions = localDb.sessions.filter(s => isSessionOnDate(s, iso)).sort((a,b) => (a.start_time || '').localeCompare(b.start_time || ''));
+                html += `<div class="${iso === todayStr ? 'bg-indigo-50/10' : ''}"><div class="p-6 border-b border-slate-100 text-center"><p class="text-[10px] font-black text-slate-400 uppercase">${d.toLocaleString('default', {weekday:'short'})}</p><p class="text-xl font-black ${iso === todayStr ? 'text-indigo-600' : ''}">${d.getDate()}</p></div><div class="p-3 space-y-2">${sessions.map(s => `<div class="p-2.5 rounded-xl border ${s.category === 'class' ? 'bg-indigo-50 border-indigo-100 text-indigo-800' : s.category === 'hw' ? 'bg-amber-50 border-amber-100 text-amber-800' : 'bg-rose-50 border-rose-100 text-rose-800'}"><p class="text-[8px] font-black uppercase opacity-60 flex items-center justify-between">${s.category} <span>${formatTime(s.start_time)}</span></p><p class="text-[11px] font-bold leading-tight mt-1">${s.title}</p></div>`).join('')}</div></div>`;
             }
-            html += `</div></div>`;
-            container.innerHTML = html;
+            container.innerHTML = html + `</div>`;
         }
 
         function renderDayView(container, titleEl, todayStr) {
             const iso = currentCalDate.toISOString().split('T')[0];
             titleEl.innerText = currentCalDate.toLocaleDateString('default', { weekday: 'long', month: 'long', day: 'numeric' });
-            const sessions = localDb.sessions.filter(s => isSessionOnDate(s, iso));
-            
-            let html = `<div class="time-grid-container overflow-y-auto max-h-[600px] custom-scrollbar p-10">`;
-            html += generateTimeGrid();
-            html += `<div class="day-column flex-1">`;
-            
-            html += sessions.map(s => {
-                const pos = getSessionPosition(s.start_time, s.end_time);
-                const subject = localDb.subjects.find(sub => sub.id === s.subject_id);
-                const color = subject ? subject.color : 'indigo';
-                return `
-                    <div class="session-card-abs bg-${color}-50 border-${color}-200 text-${color}-800" style="top: ${pos.top}px; height: ${pos.height}px; left: 20px; right: 20px;">
-                        <div class="flex items-start justify-between">
-                            <div>
-                                <p class="text-[10px] font-black uppercase opacity-60">${s.category}</p>
-                                <h5 class="text-sm font-black">${s.title}</h5>
-                                <p class="text-xs font-bold mt-1">${formatTime(s.start_time)} - ${formatTime(s.end_time)}</p>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            html += `</div></div>`;
-            container.innerHTML = html;
+            const sessions = localDb.sessions.filter(s => isSessionOnDate(s, iso)).sort((a,b) => (a.start_time || '').localeCompare(b.start_time || ''));
+            container.innerHTML = `<div class="p-10 flex justify-center min-h-[500px]"><div class="w-full max-w-xl space-y-4">${sessions.length ? sessions.map(s => `<div class="bg-white p-6 rounded-[2rem] border border-slate-100 flex items-center justify-between shadow-sm"><div class="flex items-center gap-4"><div class="w-12 h-12 rounded-2xl flex items-center justify-center ${s.category === 'class' ? 'bg-indigo-100 text-indigo-600' : s.category === 'hw' ? 'bg-amber-100 text-amber-600' : 'bg-rose-100 text-rose-600'}"><i data-lucide="${s.category === 'class' ? 'graduation-cap' : s.category === 'hw' ? 'book' : 'award'}" class="w-6 h-6"></i></div><div><p class="text-[10px] font-black uppercase opacity-40">${s.category} • ${formatTime(s.start_time)} - ${formatTime(s.end_time)}</p><h5 class="text-lg font-black">${s.title}</h5></div></div></div>`).join('') : '<div class="text-center py-20 text-slate-400 font-bold">No sessions found.</div>'}</div></div>`;
         }
 
-        // Standard Management Functions
+        // ANALYSIS CHART LOGIC
+        window.renderAnalysisChart = () => {
+            const canvas = document.getElementById('analysisChart');
+            if (!canvas) return;
+            const subjectId = document.getElementById('analysis-subject-filter').value;
+            const marks = localDb.examMarks.filter(m => m.subject_id === subjectId).sort((a,b) => new Date(a.date) - new Date(b.date));
+            
+            const labels = marks.map(m => new Date(m.date).toLocaleDateString(undefined, { month: 'short', year: '2-digit' }));
+            const dataValues = marks.map(m => m.score);
+
+            let trendValues = [];
+            if (dataValues.length > 1) {
+                const n = dataValues.length;
+                let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+                for (let i = 0; i < n; i++) {
+                    sumX += i;
+                    sumY += dataValues[i];
+                    sumXY += i * dataValues[i];
+                    sumXX += i * i;
+                }
+                const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+                const intercept = (sumY - slope * sumX) / n;
+                
+                for (let i = 0; i < n; i++) trendValues.push(slope * i + intercept);
+                
+                const prediction = Math.min(100, Math.max(0, Math.round(slope * n + intercept)));
+                document.getElementById('predicted-score').innerText = prediction + '%';
+            } else {
+                document.getElementById('predicted-score').innerText = '--';
+            }
+
+            const avg = dataValues.length ? Math.round(dataValues.reduce((a,b) => a+b, 0) / dataValues.length) : '--';
+            document.getElementById('average-score').innerText = avg + '%';
+
+            if (analysisChart) analysisChart.destroy();
+            
+            analysisChart = new Chart(canvas.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: 'Exam Mark',
+                            data: dataValues,
+                            borderColor: '#4f46e5',
+                            backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                            borderWidth: 4,
+                            pointRadius: 6,
+                            pointBackgroundColor: '#4f46e5',
+                            tension: 0.3,
+                            fill: true
+                        },
+                        {
+                            label: 'Performance Trend',
+                            data: trendValues,
+                            borderColor: 'rgba(79, 70, 229, 0.3)',
+                            borderDash: [5, 5],
+                            borderWidth: 2,
+                            pointRadius: 0,
+                            fill: false
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { intersect: false, mode: 'index' },
+                    plugins: { 
+                        legend: { display: true, position: 'top', labels: { font: { weight: 'bold', family: 'Plus Jakarta Sans' } } },
+                        tooltip: { backgroundColor: '#1e293b', padding: 12, titleFont: { size: 14, weight: 'bold' } }
+                    },
+                    scales: {
+                        y: { 
+                            min: 0, max: 100, 
+                            grid: { borderDash: [2, 2], color: '#f1f5f9' },
+                            ticks: { font: { weight: 'bold' }, callback: (v) => v + '%' }
+                        },
+                        x: { grid: { display: false }, ticks: { font: { weight: 'bold' } } }
+                    }
+                }
+            });
+        };
+
+        // UI & MANAGER LOGIC
+        function renderManager() {
+            const categories = ['class', 'hw', 'exam'];
+            categories.forEach(cat => {
+                const list = document.getElementById(`main-${cat}-list`);
+                const sessions = localDb.sessions.filter(s => s.category === cat).sort((a,b) => (a.start_time || '').localeCompare(b.start_time || ''));
+                
+                const html = sessions.map(s => {
+                    const sessionSubs = localDb.subtasks.filter(sub => sub.session_id === s.id);
+                    const done = sessionSubs.filter(sub => sub.completed).length;
+                    const progress = sessionSubs.length ? (done / sessionSubs.length) * 100 : 0;
+                    const displayDate = s.date ? new Date(s.date).toLocaleDateString(undefined, {month: 'short', day: 'numeric'}) : 'No Date';
+                    
+                    return `
+                        <div class="bg-white p-6 rounded-[2rem] border border-slate-100 shadow-sm space-y-4">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <h5 class="font-black text-slate-800 leading-tight">${s.title}</h5>
+                                    <div class="flex flex-wrap items-center gap-2 mt-2">
+                                        <span class="text-[9px] font-black text-slate-400 uppercase bg-slate-50 px-2 py-1 rounded border border-slate-100 flex items-center gap-1">
+                                            <i data-lucide="calendar" class="w-3 h-3"></i> ${displayDate}
+                                        </span>
+                                        <span class="text-[9px] font-black text-indigo-500 uppercase bg-indigo-50 px-2 py-1 rounded border border-indigo-100 flex items-center gap-1">
+                                            <i data-lucide="clock" class="w-3 h-3"></i> ${formatTime(s.start_time)}
+                                        </span>
+                                    </div>
+                                </div>
+                                <button onclick="openSubtaskModal('${s.id}')" class="p-2 bg-slate-50 rounded-xl hover:bg-indigo-600 hover:text-white transition-colors">
+                                    <i data-lucide="plus" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+                            <div class="space-y-2">
+                                <div class="flex justify-between items-center text-[10px] font-bold text-slate-400">
+                                    <span>Progress</span>
+                                    <span>${Math.round(progress)}%</span>
+                                </div>
+                                <div class="w-full bg-slate-100 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-indigo-600 h-full rounded-full transition-all duration-500" style="width: ${progress}%"></div>
+                                </div>
+                            </div>
+                        </div>`;
+                }).join('');
+                if(list) list.innerHTML = html || '<div class="text-center py-10 text-slate-400 text-xs italic">Nothing yet</div>';
+            });
+            lucide.createIcons();
+        }
+
+        const handleSessionSubmit = async (e, category) => {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const sessionData = Object.fromEntries(formData.entries());
+            
+            sessionData.id = crypto.randomUUID();
+            sessionData.category = category;
+            sessionData.user_id = user?.id || null;
+            
+            if (!sessionData.date && sessionData.deadline) {
+                sessionData.date = sessionData.deadline;
+            }
+
+            localDb.sessions.push(sessionData);
+            renderAll();
+            updateStats();
+            closeModal();
+            e.target.reset();
+
+            if (supabaseClient && user) {
+                try {
+                    const { data, error } = await supabaseClient
+                        .from('sessions')
+                        .insert([sessionData])
+                        .select();
+                    
+                    if (!error && data) {
+                        const idx = localDb.sessions.findIndex(s => s.id === sessionData.id);
+                        if (idx !== -1) localDb.sessions[idx] = data[0];
+                        renderAll();
+                    }
+                } catch (err) {
+                    console.error('Critical sync failure:', err);
+                }
+            }
+        };
+
+        window.openSubtaskModal = (sessionId) => {
+            activeSessionId = sessionId;
+            openModal('modal-subtask');
+        };
+
+        window.saveSubtask = async () => {
+            const input = document.getElementById('subtask-input');
+            const title = input.value.trim();
+            if (!title || !activeSessionId) return;
+
+            const subtask = {
+                id: crypto.randomUUID(),
+                session_id: activeSessionId,
+                title,
+                completed: false,
+                user_id: user?.id || null
+            };
+
+            localDb.subtasks.push(subtask);
+            renderAll();
+            input.value = '';
+            closeModal();
+
+            if (supabaseClient && user) {
+                const { data, error } = await supabaseClient.from('subtasks').insert([subtask]).select();
+                if (!error && data) {
+                    const idx = localDb.subtasks.findIndex(s => s.id === subtask.id);
+                    if (idx !== -1) localDb.subtasks[idx] = data[0];
+                    renderAll();
+                }
+            }
+        };
+
+        function updateStats() {
+            const dashTotalTasks = document.getElementById('dash-total-tasks');
+            if (dashTotalTasks) dashTotalTasks.innerText = localDb.sessions.length;
+            
+            const focusMinutes = localDb.focusLogs.reduce((acc, log) => acc + (log.duration / 60), 0);
+            const dashTotalFocus = document.getElementById('dash-total-focus');
+            if (dashTotalFocus) dashTotalFocus.innerText = Math.round(focusMinutes / 60) + 'h';
+            
+            const dashDayTime = document.getElementById('dash-day-time');
+            if (dashDayTime) {
+                const today = new Date().toISOString().split('T')[0];
+                const todayMins = localDb.focusLogs
+                    .filter(l => l.date === today)
+                    .reduce((acc, log) => acc + (log.duration / 60), 0);
+                dashDayTime.innerText = `${Math.floor(todayMins / 60)}h ${Math.round(todayMins % 60)}m`;
+            }
+        }
+
+        function renderAll() {
+            renderManager();
+            const html = localDb.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+            document.querySelectorAll('.subject-select').forEach(sel => sel.innerHTML = html);
+            renderCalendar();
+            renderSubjectsSettings();
+            lucide.createIcons();
+        }
+
         window.switchTab = (id) => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             const target = document.getElementById(`tab-${id}`);
             if(target) target.classList.add('active');
+            
             document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
             const links = Array.from(document.querySelectorAll('.nav-link'));
             const activeLink = links.find(l => l.getAttribute('onclick').includes(id));
             if(activeLink) activeLink.classList.add('active');
+
             document.getElementById('header-title').innerText = id.replace(/-/g, ' ');
+            
             if (id === 'analyze') setTimeout(renderAnalysisChart, 100);
             if (id === 'calendar') renderCalendar();
             lucide.createIcons();
-        };
-
-        window.setCalendarView = (view) => {
-            currentCalView = view;
-            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(`view-${view}`).classList.add('active');
-            renderCalendar();
-        };
-
-        window.navigateCalendar = (dir) => {
-            if (currentCalView === 'month') currentCalDate.setMonth(currentCalDate.getMonth() + dir);
-            else if (currentCalView === 'week') currentCalDate.setDate(currentCalDate.getDate() + (dir * 7));
-            else currentCalDate.setDate(currentCalDate.getDate() + dir);
-            renderCalendar();
         };
 
         window.openModal = (id) => {
             document.getElementById('modal-overlay').classList.remove('hidden');
             document.querySelectorAll('.modal-window').forEach(m => m.classList.add('hidden'));
             document.getElementById(id).classList.remove('hidden');
+            if(id === 'modal-settings') renderSubjectsSettings();
             lucide.createIcons();
         };
 
         window.closeModal = () => document.getElementById('modal-overlay').classList.add('hidden');
 
-        // Timer
-        let timeLeft = 1500, timerRunning = false, timerInterval;
-        window.toggleTimer = () => {
-            if (timerRunning) { clearInterval(timerInterval); timerRunning = false; document.getElementById('timer-btn').innerText = 'Resume'; }
-            else { 
-                timerRunning = true; document.getElementById('timer-btn').innerText = 'Pause';
-                timerInterval = setInterval(() => { timeLeft--; updateTimerUI(); if (timeLeft <= 0) completeSession(); }, 1000);
-            }
-        };
-        function updateTimerUI() {
-            const mins = Math.floor(timeLeft / 60), secs = timeLeft % 60;
-            document.getElementById('timer-display').innerText = `${mins}:${secs.toString().padStart(2, '0')}`;
-            document.getElementById('timer-progress').style.strokeDashoffset = 942.48 - (timeLeft / 1500) * 942.48;
-        }
-
-        async function handleSessionSubmit(e, category) {
-            e.preventDefault();
-            const formData = new FormData(e.target);
-            const sessionData = Object.fromEntries(formData.entries());
-            sessionData.id = crypto.randomUUID();
-            sessionData.category = category;
-            localDb.sessions.push(sessionData);
-            renderAll();
-            closeModal();
-            e.target.reset();
-            if (supabaseClient && user) await supabaseClient.from('sessions').insert([sessionData]);
-        }
-
-        function updateStats() {
-            document.getElementById('dash-total-tasks').innerText = localDb.sessions.length;
-            const focusMinutes = localDb.focusLogs.reduce((acc, log) => acc + (log.duration / 60), 0);
-            document.getElementById('dash-total-focus').innerText = Math.round(focusMinutes / 60) + 'h';
-        }
-
-        function renderAll() {
-            const html = localDb.subjects.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
-            document.querySelectorAll('.subject-select').forEach(sel => sel.innerHTML = html);
-            renderCalendar();
-            lucide.createIcons();
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('class-form').onsubmit = (e) => handleSessionSubmit(e, 'class');
+            const classForm = document.getElementById('class-form');
+            if (classForm) classForm.onsubmit = (e) => handleSessionSubmit(e, 'class');
+            const hwForm = document.getElementById('hw-form');
+            if (hwForm) hwForm.onsubmit = (e) => handleSessionSubmit(e, 'hw');
+            const examForm = document.getElementById('exam-form');
+            if (examForm) examForm.onsubmit = (e) => handleSessionSubmit(e, 'exam');
+            const subjectForm = document.getElementById('add-subject-form');
+            if (subjectForm) subjectForm.onsubmit = (e) => handleAddSubject(e);
+            
             init();
         });
 
@@ -564,6 +873,7 @@
             if(document.getElementById('current-time')) document.getElementById('current-time').innerText = now.toLocaleTimeString();
             if(document.getElementById('current-date')) document.getElementById('current-date').innerText = now.toDateString();
         }, 1000);
+
     </script>
 </body>
 </html>
